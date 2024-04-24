@@ -1,4 +1,4 @@
-package com.app.qaimobile
+package com.app.qaimobile.ui
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
