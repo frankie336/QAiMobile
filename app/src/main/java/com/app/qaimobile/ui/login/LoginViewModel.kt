@@ -18,14 +18,14 @@ class LoginViewModel @Inject constructor(private val repository: UserRepository)
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
     val loginState: StateFlow<LoginState> = _loginState
 
-    fun login(username: String, password: String) {
-        if (username.isBlank() || password.isEmpty()) {
+    fun login(email: String, password: String) {
+        if (email.isBlank() || password.isEmpty()) {
             _loginState.value = LoginState.Error("Username or password is empty")
             return
         }
 
         _loginState.value = LoginState.Loading
-        val user = User(username, password)
+        val user = User(email, password)
         viewModelScope.launch {
             val result = repository.login(user)
             _loginState.value = when (result) {
