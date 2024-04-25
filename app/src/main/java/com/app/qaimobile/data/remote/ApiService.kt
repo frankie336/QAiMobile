@@ -1,6 +1,7 @@
 package com.app.qaimobile.data.remote
 
-import com.app.qaimobile.data.model.User
+import com.app.qaimobile.data.model.network.auth.LoginRequest
+import com.app.qaimobile.data.model.network.auth.LoginResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
@@ -12,9 +13,9 @@ interface ApiService {
 
     /**
      * This function is used to login the user.
-     * @param user The user object containing the user credentials.
+     * @param loginRequest The user object containing the user credentials.
      * @return The response containing the user object.
      */
-    @POST("login")
-    suspend fun login(@Body user: User): Response<User>
+    @POST("bp_auth/login")
+    suspend fun login(@Body loginRequest: LoginRequest): Response<LoginResponse>
 }
