@@ -3,14 +3,14 @@ package com.app.qaimobile.ui
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.app.qaimobile.ui.login.LoginScreen
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.rememberNavController
+import com.app.qaimobile.navigation.APP_NAV_GRAPH_ROUTE
+import com.app.qaimobile.navigation.appNavGraph
+import com.app.qaimobile.ui.destinations.LoginScreenDestination
 import com.app.qaimobile.ui.theme.QAiMobileTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -20,12 +20,16 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             QAiMobileTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                val navController = rememberNavController()
+                NavHost(
+                    modifier =
+                    Modifier.background(
+                        MaterialTheme.colorScheme.background
+                    ),
+                    navController = navController,
+                    startDestination = APP_NAV_GRAPH_ROUTE,
                 ) {
-                    LoginScreen()
+                    appNavGraph(navController, LoginScreenDestination.route)
                 }
             }
         }
