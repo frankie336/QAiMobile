@@ -12,4 +12,7 @@ val Pink40 = Color(0xFF7D5260)
 
 val DarkGray = Color(0xFF333333)
 val LightGray = Color(0xFFF2F2F2)
-val PrimaryColor = Color(0xFF121212)
+val PrimaryColor = Color(0xFFff6c00)
+val SurfaceColor = Color(0xFF4F4F4F)
+val SecondaryColor = Color(0xFF45A049)
+val LinkColor = Color(0xFF0077CC)
