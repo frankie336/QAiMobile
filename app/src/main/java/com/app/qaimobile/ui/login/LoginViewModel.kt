@@ -10,17 +10,25 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.app.qaimobile.domain.Result.Success
 import com.app.qaimobile.domain.Result.Failure
+import com.app.qaimobile.domain.datastore.AppDataStore
 import com.app.qaimobile.domain.repository.UserRepository
 
 
 @HiltViewModel
-class LoginViewModel @Inject constructor(private val repository: UserRepository) : ViewModel() {
+class LoginViewModel @Inject constructor(
+    private val repository: UserRepository,
+    private val appDataStore: AppDataStore
+) : ViewModel() {
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
     val loginState: StateFlow<LoginState> = _loginState
 
     fun login(email: String, password: String) {
         if (email.isBlank() || password.isEmpty()) {
-            _loginState.value = LoginState.Error("Username or password is empty")
+            //_loginState.value = LoginState.Error("Username or password is empty")
+            viewModelScope.launch {
+                _loginState.value =
+                    LoginState.Error("Username or password is empty: ${appDataStore.isLoggedIn()}")
+            }
             return
         }
 
