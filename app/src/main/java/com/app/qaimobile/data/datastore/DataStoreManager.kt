@@ -7,6 +7,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.app.qaimobile.domain.datastore.AppDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 
 private val Context.dataStore by preferencesDataStore(name = "user_prefs")
@@ -18,6 +19,7 @@ class DataStoreManager(context: Context) : AppDataStore {
         val EMAIL_KEY = stringPreferencesKey("username")
         val PASSWORD_KEY = stringPreferencesKey("password")
         val IS_LOGGED_IN_KEY = stringPreferencesKey("is_logged_in")
+        val ACCESS_TOKEN_KEY = stringPreferencesKey("access_token")
     }
 
     override suspend fun saveUserCredentials(email: String, password: String) {
@@ -37,7 +39,17 @@ class DataStoreManager(context: Context) : AppDataStore {
         }
     }
 
-    override suspend fun isLoggedIn(): Boolean = dataStore.data.map { preferences ->
+    override val isLoggedIn: Flow<Boolean> = dataStore.data.map { preferences ->
         preferences[IS_LOGGED_IN_KEY]?.toBoolean() ?: false
+    }
+
+    override suspend fun saveAccessToken(accessToken: String) {
+        dataStore.edit { preferences ->
+            preferences[ACCESS_TOKEN_KEY] = accessToken
+        }
+    }
+
+    override suspend fun getAccessToken(): String? = dataStore.data.map { preferences ->
+        preferences[ACCESS_TOKEN_KEY]
     }.first()
 }

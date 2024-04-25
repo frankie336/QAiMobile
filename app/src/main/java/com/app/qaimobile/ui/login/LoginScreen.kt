@@ -1,9 +1,5 @@
 package com.app.qaimobile.ui.login
 
-import android.content.Intent
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,7 +31,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,6 +38,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -60,6 +58,10 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.qaimobile.R
 import com.app.qaimobile.ui.destinations.HomeScreenDestination
+import com.app.qaimobile.util.CollectAsEffect
+import com.app.qaimobile.util.openLink
+import com.app.qaimobile.util.rememberActivityOrNull
+import com.app.qaimobile.util.showToast
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
@@ -70,16 +72,39 @@ fun LoginScreen(
     loginViewModel: LoginViewModel = hiltViewModel(),
     navHostController: DestinationsNavigator? = null
 ) {
-    var emailState by remember { mutableStateOf("") }
-    var passwordState by remember { mutableStateOf("") }
+
+    val context = LocalContext.current
+    val activity = rememberActivityOrNull()
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
     var isRememberMeChecked by remember { mutableStateOf(false) }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
-    val loginState by loginViewModel.loginState.collectAsState()
+    var loadingState by remember { mutableStateOf(false) }
 
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { _ -> }
+    loginViewModel.loginState.CollectAsEffect { loginState ->
+        when (loginState) {
+            is LoginState.Loading -> {
+                loadingState = true
+            }
+
+            is LoginState.Success -> {
+                loadingState = false
+                navHostController?.navigate(HomeScreenDestination.route)
+            }
+
+            is LoginState.Error -> {
+                loadingState = false
+                showToast(context, loginState.message)
+            }
+
+            else -> Unit
+        }
+    }
+
+
 
     Scaffold { paddingValues ->
         ConstraintLayout(
@@ -87,7 +112,7 @@ fun LoginScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            val (column, row) = createRefs()
+            val (column, row, loadingIndicator) = createRefs()
             Column(modifier = Modifier
                 .constrainAs(column) {
                     top.linkTo(parent.top)
@@ -109,8 +134,8 @@ fun LoginScreen(
                         .align(Alignment.CenterHorizontally)
                 )
                 OutlinedTextField(
-                    value = emailState,
-                    onValueChange = { emailState = it },
+                    value = email,
+                    onValueChange = { email = it },
                     placeholder = { Text(stringResource(R.string.email_address)) },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -129,8 +154,8 @@ fun LoginScreen(
 
                 )
                 OutlinedTextField(
-                    value = passwordState,
-                    onValueChange = { passwordState = it },
+                    value = password,
+                    onValueChange = { password = it },
                     placeholder = { Text(stringResource(R.string.password)) },
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     modifier = Modifier
@@ -176,10 +201,8 @@ fun LoginScreen(
                 }
                 Button(
                     onClick = {
-                        val email = emailState
-                        val password = passwordState
-                        loginViewModel.login(email, password)
-                        navHostController?.navigate(HomeScreenDestination)
+                        keyboardController?.hide()
+                        loginViewModel.login(email, password, isRememberMeChecked)
                     },
                     shape = RoundedCornerShape(4.dp),
                     modifier = Modifier
@@ -237,23 +260,6 @@ fun LoginScreen(
                         println("Clicked on don't have an account text")
                     }
                 }
-
-
-                when (loginState) {
-                    is LoginState.Loading -> {
-                        Text(text = "Logging in...")
-                    }
-
-                    is LoginState.Success -> {
-                        Text(text = "Login successful!")
-                    }
-
-                    is LoginState.Error -> {
-                        Text(text = "Login failed: ${(loginState as LoginState.Error).message}")
-                    }
-
-                    is LoginState.Idle -> Unit
-                }
             }
             Row(verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
@@ -264,10 +270,7 @@ fun LoginScreen(
                 Text(
                     text = stringResource(R.string.terms_off_use),
                     modifier = Modifier.clickable {
-                        val intent = Intent(Intent.ACTION_VIEW)
-                        intent.data = Uri.parse("https://www.projectdavid.ai/")
-                        val chooserIntent = Intent.createChooser(intent, "Open with")
-                        launcher.launch(chooserIntent)
+                        activity?.openLink("https://www.projectdavid.ai/")
                     }
                 )
                 Spacer(
@@ -278,10 +281,16 @@ fun LoginScreen(
                         .background(MaterialTheme.colorScheme.onBackground)
                 )
                 Text(text = stringResource(R.string.privacy_policy), modifier = Modifier.clickable {
-                    val intent = Intent(Intent.ACTION_VIEW)
-                    intent.data = Uri.parse("https://www.projectdavid.co.uk/privacy-policy")
-                    val chooserIntent = Intent.createChooser(intent, "Open with")
-                    launcher.launch(chooserIntent)
+                    activity?.openLink("https://www.projectdavid.co.uk/privacy-policy")
+                })
+            }
+
+            if (loadingState) {
+                CircularProgressIndicator(modifier = Modifier.constrainAs(loadingIndicator) {
+                    top.linkTo(parent.top)
+                    bottom.linkTo(parent.bottom)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
                 })
             }
         }

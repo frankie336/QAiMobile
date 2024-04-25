@@ -1,6 +1,6 @@
 package com.app.qaimobile.di
 
-import com.app.qaimobile.data.remote.ApiService
+import com.app.qaimobile.data.remote.UserDataSource
 import com.app.qaimobile.data.repository.UserRepositoryImpl
 import com.app.qaimobile.domain.repository.UserRepository
 import dagger.Module
@@ -18,7 +18,7 @@ object UserRepositoryModule {
      */
     @Provides
     @Singleton
-    fun provideUserRepository(apiService: ApiService): UserRepository {
-        return UserRepositoryImpl(apiService)
+    fun provideUserRepository(dataSource: UserDataSource): UserRepository {
+        return UserRepositoryImpl(dataSource)
     }
 }
