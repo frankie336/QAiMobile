@@ -14,12 +14,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -59,7 +59,9 @@ import com.app.qaimobile.R
 import com.app.qaimobile.navigation.Destinations
 import com.app.qaimobile.ui.composables.LoadingDialog
 import com.app.qaimobile.ui.destinations.HomeScreenDestination
+import com.app.qaimobile.ui.destinations.LoginScreenDestination
 import com.app.qaimobile.ui.theme.QAiMobileTheme
+import com.app.qaimobile.util.Constants
 import com.app.qaimobile.util.openLink
 import com.app.qaimobile.util.rememberActivityOrNull
 import com.app.qaimobile.util.showToast
@@ -85,12 +87,17 @@ fun LoginScreen(
 
     LaunchedEffect(Unit) {
         uiEvent.collect {
-            when(it) {
+            when (it) {
                 is LoginUiEvent.ShowError -> {
                     showToast(context, it.message)
                 }
+
                 LoginUiEvent.Success -> {
-                    navHostController?.navigate(HomeScreenDestination.route)
+                    navHostController?.navigate(Destinations.HOME_ROUTE){
+                        popUpTo(Destinations.LOGIN_ROUTE){
+                            inclusive = true
+                        }
+                    }
                 }
             }
         }
@@ -158,6 +165,9 @@ fun LoginScreen(
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password, imeAction = ImeAction.Done
                     ),
+                    keyboardActions = KeyboardActions(onDone = {
+                        keyboardController?.hide()
+                    }),
                     singleLine = true,
                     trailingIcon = {
                         val image =
@@ -264,7 +274,7 @@ fun LoginScreen(
                 Text(
                     text = stringResource(R.string.terms_off_use),
                     modifier = Modifier.clickable {
-                        activity?.openLink("https://www.projectdavid.ai/")
+                        activity?.openLink(Constants.TERMS_OF_USE_URL)
                     }
                 )
                 Spacer(
@@ -275,7 +285,7 @@ fun LoginScreen(
                         .background(MaterialTheme.colorScheme.onBackground)
                 )
                 Text(text = stringResource(R.string.privacy_policy), modifier = Modifier.clickable {
-                    activity?.openLink("https://www.projectdavid.co.uk/privacy-policy")
+                    activity?.openLink(Constants.PRIVACY_POLICY_URL)
                 })
             }
         }
