@@ -11,7 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.app.qaimobile.domain.datastore.AppDataStore
-import com.app.qaimobile.navigation.APP_NAV_GRAPH_ROUTE
+import com.app.qaimobile.navigation.Destinations.APP_NAV_GRAPH_ROUTE
 import com.app.qaimobile.navigation.appNavGraph
 import com.app.qaimobile.ui.destinations.HomeScreenDestination
 import com.app.qaimobile.ui.destinations.LoginScreenDestination

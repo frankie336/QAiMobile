@@ -31,9 +31,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -55,56 +55,45 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.qaimobile.R
+import com.app.qaimobile.navigation.Destinations
 import com.app.qaimobile.ui.destinations.HomeScreenDestination
-import com.app.qaimobile.util.CollectAsEffect
+import com.app.qaimobile.ui.theme.QAiMobileTheme
 import com.app.qaimobile.util.openLink
 import com.app.qaimobile.util.rememberActivityOrNull
 import com.app.qaimobile.util.showToast
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Destination(route = "login")
+@Destination(Destinations.LOGIN_ROUTE)
 @Composable
 fun LoginScreen(
-    loginViewModel: LoginViewModel = hiltViewModel(),
+    state: LoginState = LoginState(),
+    onEvent: (LoginViewModelEvent) -> Unit = {},
+    uiEvent: SharedFlow<LoginUiEvent> = MutableSharedFlow(),
     navHostController: DestinationsNavigator? = null
 ) {
 
     val context = LocalContext.current
     val activity = rememberActivityOrNull()
     val keyboardController = LocalSoftwareKeyboardController.current
-
-    var email by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    var isRememberMeChecked by remember { mutableStateOf(false) }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
-    var loadingState by remember { mutableStateOf(false) }
-
-    loginViewModel.loginState.CollectAsEffect { loginState ->
-        when (loginState) {
-            is LoginState.Loading -> {
-                loadingState = true
+    LaunchedEffect(Unit) {
+        uiEvent.collect {
+            when(it) {
+                is LoginUiEvent.ShowError -> {
+                    showToast(context, it.message)
+                }
+                LoginUiEvent.Success -> {
+                    navHostController?.navigate(HomeScreenDestination.route)
+                }
             }
-
-            is LoginState.Success -> {
-                loadingState = false
-                navHostController?.navigate(HomeScreenDestination.route)
-            }
-
-            is LoginState.Error -> {
-                loadingState = false
-                showToast(context, loginState.message)
-            }
-
-            else -> Unit
         }
     }
-
-
 
     Scaffold { paddingValues ->
         ConstraintLayout(
@@ -134,8 +123,8 @@ fun LoginScreen(
                         .align(Alignment.CenterHorizontally)
                 )
                 OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
+                    value = state.email,
+                    onValueChange = { onEvent(LoginViewModelEvent.UpdateEmail(it)) },
                     placeholder = { Text(stringResource(R.string.email_address)) },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -154,8 +143,8 @@ fun LoginScreen(
 
                 )
                 OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
+                    value = state.password,
+                    onValueChange = { onEvent(LoginViewModelEvent.UpdatePassword(it)) },
                     placeholder = { Text(stringResource(R.string.password)) },
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     modifier = Modifier
@@ -191,8 +180,8 @@ fun LoginScreen(
                 ) {
                     CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
                         Checkbox(
-                            checked = isRememberMeChecked,
-                            onCheckedChange = { isRememberMeChecked = it },
+                            checked = state.isRememberMeChecked,
+                            onCheckedChange = { onEvent(LoginViewModelEvent.UpdateRememberMe(it)) },
                             modifier = Modifier.padding(vertical = 8.dp),
                         )
                     }
@@ -202,7 +191,7 @@ fun LoginScreen(
                 Button(
                     onClick = {
                         keyboardController?.hide()
-                        loginViewModel.login(email, password, isRememberMeChecked)
+                        onEvent(LoginViewModelEvent.Authenticate)
                     },
                     shape = RoundedCornerShape(4.dp),
                     modifier = Modifier
@@ -285,7 +274,7 @@ fun LoginScreen(
                 })
             }
 
-            if (loadingState) {
+            if (state.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.constrainAs(loadingIndicator) {
                     top.linkTo(parent.top)
                     bottom.linkTo(parent.bottom)
@@ -300,5 +289,12 @@ fun LoginScreen(
 @PreviewLightDark
 @Composable
 fun PreviewLoginScreen() {
-    //LoginScreen(hiltViewModel())
+    QAiMobileTheme {
+        val state = LoginState(
+            email = "Hamza@gmail.com",
+            password = "123456",
+            isRememberMeChecked = true
+        )
+        LoginScreen(state = state)
+    }
 }

@@ -1,5 +1,7 @@
 package com.app.qaimobile.ui.login
 
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.qaimobile.R
@@ -12,7 +14,11 @@ import com.app.qaimobile.domain.repository.UserRepository
 import com.app.qaimobile.util.isValidEmail
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
@@ -26,36 +32,50 @@ class LoginViewModel @Inject constructor(
     private val appDataStore: AppDataStore,
     private val resourceProvider: ResourceProvider
 ) : ViewModel() {
-    private val _loginState = MutableSharedFlow<LoginState>()
-    val loginState: SharedFlow<LoginState> = _loginState
+    private val _state = mutableStateOf(LoginState())
+    val state: State<LoginState> = _state
 
-    fun login(email: String, password: String, isRememberMe: Boolean) {
+    private val _uiEvent = MutableSharedFlow<LoginUiEvent>()
+    val uiEvent: SharedFlow<LoginUiEvent> = _uiEvent.asSharedFlow()
+
+
+    fun onEvent(event: LoginViewModelEvent) {
+        when(event) {
+            LoginViewModelEvent.Authenticate -> login(
+                state.value.email,
+                state.value.password,
+                state.value.isRememberMeChecked)
+
+            is LoginViewModelEvent.UpdateEmail -> _state.value = state.value.copy(email = event.email)
+            is LoginViewModelEvent.UpdatePassword -> _state.value = state.value.copy(password = event.password)
+            is LoginViewModelEvent.UpdateRememberMe -> _state.value = state.value.copy(isRememberMeChecked = event.rememberMe)
+        }
+    }
+
+    private fun login(email: String, password: String, isRememberMe: Boolean) {
         viewModelScope.launch {
             if (email.isBlank()) {
-                _loginState.emit(LoginState.Error(resourceProvider.getString(R.string.please_enter_email)))
+                _uiEvent.emit(LoginUiEvent.ShowError(resourceProvider.getString(R.string.please_enter_email)))
                 return@launch
             }
 
             if (!email.isValidEmail()) {
-                _loginState.emit(
-                    LoginState.Error(resourceProvider.getString(R.string.please_enter_valid_email))
+                _uiEvent.emit(LoginUiEvent.ShowError(resourceProvider.getString(R.string.please_enter_valid_email))
                 )
                 return@launch
             }
 
             if (password.isEmpty()) {
-                _loginState.emit(
-                    LoginState.Error(resourceProvider.getString(R.string.please_enter_password))
-                )
+                _uiEvent.emit(LoginUiEvent.ShowError(resourceProvider.getString(R.string.please_enter_password)))
                 return@launch
             }
 
             if (!resourceProvider.issNetworkAvailable()) {
-                _loginState.emit(LoginState.Error(resourceProvider.getString(R.string.please_check_your_internet_connection)))
+                _uiEvent.emit(LoginUiEvent.ShowError(resourceProvider.getString(R.string.please_check_your_internet_connection)))
                 return@launch
             }
 
-            _loginState.emit(LoginState.Loading)
+            _state.value = state.value.copy(isLoading = true)
             val loginRequest = LoginRequest(email, password, isRememberMe)
 
             when (val result = repository.login(loginRequest)) {
@@ -65,7 +85,7 @@ class LoginViewModel @Inject constructor(
                         saveAccessToken(result.data.access_token)
                         saveIsLoggedIn(true)
                     }
-                    _loginState.emit(LoginState.Success)
+                    _uiEvent.emit(LoginUiEvent.Success)
                 }
 
                 is Failure -> {
@@ -79,31 +99,36 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             when (exception) {
                 is IOException -> {
-                    _loginState.emit(LoginState.Error(resourceProvider.getString(R.string.slower_internet_connection)))
+                    _uiEvent.emit(LoginUiEvent.ShowError(resourceProvider.getString(R.string.slower_internet_connection)))
                 }
 
                 is TimeoutException -> {
-                    _loginState.emit(LoginState.Error(resourceProvider.getString(R.string.timeout_error)))
+                    _uiEvent.emit(LoginUiEvent.ShowError(resourceProvider.getString(R.string.timeout_error)))
                 }
 
                 is HttpException -> {
                     if (exception.code() == 401) {
-                        _loginState.emit(LoginState.Error(resourceProvider.getString(R.string.invalid_email_or_password)))
+                        _uiEvent.emit(LoginUiEvent.ShowError(resourceProvider.getString(R.string.invalid_email_or_password)))
                     } else if (exception.code() == 500) {
-                        _loginState.emit(LoginState.Error(resourceProvider.getString(R.string.something_went_wrong)))
+                        _uiEvent.emit(LoginUiEvent.ShowError(resourceProvider.getString(R.string.something_went_wrong)))
                     } else {
-                        _loginState.emit(LoginState.Error(resourceProvider.getString(R.string.unknown_error_occoured)))
+                        _uiEvent.emit(LoginUiEvent.ShowError(resourceProvider.getString(R.string.unknown_error_occoured)))
                     }
                 }
 
                 is IllegalArgumentException -> {
-                    _loginState.emit(LoginState.Error(exception.message ?: exception.toString()))
+                    _uiEvent.emit(LoginUiEvent.ShowError(exception.message ?: exception.toString()))
                 }
 
                 else -> {
-                    _loginState.emit(LoginState.Error(exception.message ?: exception.toString()))
+                    _uiEvent.emit(LoginUiEvent.ShowError(exception.message ?: exception.toString()))
                 }
             }
         }
     }
+}
+
+sealed class LoginUiEvent {
+    data class ShowError(val message: String): LoginUiEvent()
+    data object Success: LoginUiEvent()
 }

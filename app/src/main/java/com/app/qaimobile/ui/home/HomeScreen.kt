@@ -9,10 +9,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.app.qaimobile.navigation.Destinations
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
-@Destination(route = "home")
+@Destination(route = Destinations.HOME_ROUTE)
 @Composable
 fun HomeScreen(navHostController: DestinationsNavigator? = null) {
     Scaffold { paddingValues ->
