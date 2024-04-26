@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import com.app.qaimobile.R
+import com.app.qaimobile.navigation.Destinations
 import com.app.qaimobile.ui.destinations.HomeScreenDestination
 import com.app.qaimobile.ui.theme.QAiMobileTheme
 import com.app.qaimobile.util.openLink
@@ -67,7 +68,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Destination("login")
+@Destination(Destinations.LOGIN_ROUTE)
 @Composable
 fun LoginScreen(
     state: LoginState = LoginState(),
