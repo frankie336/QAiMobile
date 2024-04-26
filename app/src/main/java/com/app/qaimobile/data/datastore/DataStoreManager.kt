@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.app.qaimobile.domain.datastore.AppDataStore
+import com.app.qaimobile.util.asString
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -49,7 +50,7 @@ class DataStoreManager(context: Context) : AppDataStore {
         }
     }
 
-    override suspend fun getAccessToken(): String? = dataStore.data.map { preferences ->
-        preferences[ACCESS_TOKEN_KEY]
-    }.first()
+    override val accessToken: Flow<String> = dataStore.data.map { preferences ->
+        preferences[ACCESS_TOKEN_KEY].asString()
+    }
 }
