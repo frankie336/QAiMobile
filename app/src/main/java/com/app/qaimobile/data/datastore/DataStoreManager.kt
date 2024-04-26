@@ -7,8 +7,6 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.app.qaimobile.domain.datastore.AppDataStore
 import com.app.qaimobile.util.asString
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 
 private val Context.dataStore by preferencesDataStore(name = DataStoreConstants.USER_PREFERENCES)

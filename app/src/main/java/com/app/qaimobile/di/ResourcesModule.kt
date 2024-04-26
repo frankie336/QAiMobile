@@ -3,7 +3,6 @@ package com.app.qaimobile.di
 import android.content.Context
 import androidx.annotation.StringRes
 import com.app.qaimobile.util.isInternetAvailable
-import dagger.Provides
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
