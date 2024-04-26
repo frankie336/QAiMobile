@@ -2,7 +2,6 @@ package com.app.qaimobile.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavOptions
 import androidx.navigation.NavOptionsBuilder
 import com.app.qaimobile.R
 import com.app.qaimobile.di.ResourceProvider

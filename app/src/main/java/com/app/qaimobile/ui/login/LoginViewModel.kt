@@ -13,7 +13,6 @@ import com.app.qaimobile.domain.datastore.AppDataStore
 import com.app.qaimobile.domain.repository.UserRepository
 import com.app.qaimobile.util.isValidEmail
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -101,6 +100,8 @@ class LoginViewModel @Inject constructor(
                     appDataStore.apply {
                         if (isRememberMe)
                             saveUserCredentials(email, password)
+                        else
+                            saveUserCredentials("", "")
                         saveAccessToken(result.data.access_token)
                         saveIsLoggedIn(true)
                     }
