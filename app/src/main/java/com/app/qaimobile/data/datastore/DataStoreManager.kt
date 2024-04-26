@@ -10,16 +10,16 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 
-private val Context.dataStore by preferencesDataStore(name = "user_prefs")
+private val Context.dataStore by preferencesDataStore(name = DataStoreConstants.USER_PREFERENCES)
 
 class DataStoreManager(context: Context) : AppDataStore {
     private val dataStore = context.dataStore
 
     companion object {
-        val EMAIL_KEY = stringPreferencesKey("username")
-        val PASSWORD_KEY = stringPreferencesKey("password")
-        val IS_LOGGED_IN_KEY = stringPreferencesKey("is_logged_in")
-        val ACCESS_TOKEN_KEY = stringPreferencesKey("access_token")
+        val EMAIL_KEY = stringPreferencesKey(DataStoreConstants.EMAIL)
+        val PASSWORD_KEY = stringPreferencesKey(DataStoreConstants.PASSWORD)
+        val IS_LOGGED_IN_KEY = stringPreferencesKey(DataStoreConstants.IS_LOGGED_IN)
+        val ACCESS_TOKEN_KEY = stringPreferencesKey(DataStoreConstants.ACCESS_TOKEN)
     }
 
     override suspend fun saveUserCredentials(email: String, password: String) {
