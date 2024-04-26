@@ -57,6 +57,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import com.app.qaimobile.R
 import com.app.qaimobile.navigation.Destinations
+import com.app.qaimobile.ui.composables.LoadingDialog
 import com.app.qaimobile.ui.destinations.HomeScreenDestination
 import com.app.qaimobile.ui.theme.QAiMobileTheme
 import com.app.qaimobile.util.openLink
@@ -95,13 +96,17 @@ fun LoginScreen(
         }
     }
 
+    if (state.isLoading) {
+        LoadingDialog()
+    }
+
     Scaffold { paddingValues ->
         ConstraintLayout(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            val (column, row, loadingIndicator) = createRefs()
+            val (column, row) = createRefs()
             Column(modifier = Modifier
                 .constrainAs(column) {
                     top.linkTo(parent.top)
@@ -271,15 +276,6 @@ fun LoginScreen(
                 )
                 Text(text = stringResource(R.string.privacy_policy), modifier = Modifier.clickable {
                     activity?.openLink("https://www.projectdavid.co.uk/privacy-policy")
-                })
-            }
-
-            if (state.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.constrainAs(loadingIndicator) {
-                    top.linkTo(parent.top)
-                    bottom.linkTo(parent.bottom)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
                 })
             }
         }

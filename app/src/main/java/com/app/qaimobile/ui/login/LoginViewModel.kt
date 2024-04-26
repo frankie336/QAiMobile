@@ -13,12 +13,10 @@ import com.app.qaimobile.domain.datastore.AppDataStore
 import com.app.qaimobile.domain.repository.UserRepository
 import com.app.qaimobile.util.isValidEmail
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
@@ -75,10 +73,12 @@ class LoginViewModel @Inject constructor(
                 return@launch
             }
 
-            _state.value = state.value.copy(isLoading = true)
-            val loginRequest = LoginRequest(email, password, isRememberMe)
 
-            when (val result = repository.login(loginRequest)) {
+            val loginRequest = LoginRequest(email, password, isRememberMe)
+            _state.value = state.value.copy(isLoading = true)
+            val result = repository.login(loginRequest)
+            _state.value = state.value.copy(isLoading = false)
+            when (result) {
                 is Success -> {
                     appDataStore.apply {
                         saveUserCredentials(email, password)
