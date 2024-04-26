@@ -5,9 +5,12 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.navigation
 import com.app.qaimobile.navigation.Destinations.APP_NAV_GRAPH_ROUTE
+import com.app.qaimobile.ui.destinations.ForgotPasswordScreenDestination
 import com.app.qaimobile.ui.destinations.HomeScreenDestination
 import com.app.qaimobile.ui.destinations.LoginScreenDestination
 import com.app.qaimobile.ui.destinations.SplashScreenDestination
+import com.app.qaimobile.ui.forgot_password.ForgotPasswordScreen
+import com.app.qaimobile.ui.forgot_password.ForgotPasswordViewModel
 import com.app.qaimobile.ui.home.HomeScreen
 import com.app.qaimobile.ui.home.HomeViewModel
 import com.app.qaimobile.ui.login.LoginScreen
@@ -33,6 +36,16 @@ fun NavGraphBuilder.appNavGraph(navController: NavController, startDestination: 
             HomeScreen(
                 onEvent = homeViewModel::onEvent,
                 uiEvent = homeViewModel.uiEvent,
+                navHostController = destinationsNavigator(navController)
+            )
+        }
+
+        composable(ForgotPasswordScreenDestination) {
+            val forgotPasswordViewModel: ForgotPasswordViewModel = hiltViewModel()
+            ForgotPasswordScreen(
+                state = forgotPasswordViewModel.state.value,
+                onEvent = forgotPasswordViewModel::onEvent,
+                uiEvent = forgotPasswordViewModel.uiEvent,
                 navHostController = destinationsNavigator(navController)
             )
         }

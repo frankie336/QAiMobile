@@ -1,6 +1,7 @@
 package com.app.qaimobile.util
 
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
@@ -10,16 +11,20 @@ import android.net.Uri
 import android.util.Patterns
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.flowWithLifecycle
+import com.app.qaimobile.R
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOn
@@ -95,6 +100,17 @@ fun showToast(
     ).show()
 }
 
+@Composable
+fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier {
+    return this then
+            clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() },
+            ) {
+                onClick()
+            }
+}
+
 fun Context.isInternetAvailable(): Boolean {
     val connectivityManager =
         this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -110,11 +126,13 @@ fun Context.isInternetAvailable(): Boolean {
 }
 
 fun Activity.openLink(link: String) {
-    val uri = Uri.parse(link)
-    val intent = Intent(Intent.ACTION_VIEW, uri)
-    val chooser = Intent.createChooser(intent, "Choose Your Browser")
-    if (intent.resolveActivity(this.packageManager) != null) {
+    try {
+        val uri = Uri.parse(link)
+        val intent = Intent(Intent.ACTION_VIEW, uri)
+        val chooser = Intent.createChooser(intent, "Choose Your Browser")
         this.startActivity(chooser)
+    } catch (e: ActivityNotFoundException) {
+        Toast.makeText(this, getString(R.string.no_browser_found), Toast.LENGTH_SHORT).show()
     }
 }
 

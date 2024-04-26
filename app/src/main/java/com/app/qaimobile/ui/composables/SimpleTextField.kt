@@ -1,6 +1,7 @@
 package com.app.qaimobile.ui.composables
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -22,7 +23,8 @@ fun SimpleTextField(
     keyboardType: KeyboardType = KeyboardType.Text,
     imeAction: ImeAction = ImeAction.Done,
     singleLine: Boolean = false,
-    maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE
+    maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
 ) {
     OutlinedTextField(
         value = value,
@@ -36,6 +38,7 @@ fun SimpleTextField(
         textStyle = CustomRegularTextStyle,
         singleLine = singleLine,
         maxLines = maxLines,
+        keyboardActions = keyboardActions,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = MaterialTheme.colorScheme.primary,
             unfocusedBorderColor = MaterialTheme.colorScheme.onPrimaryContainer,
