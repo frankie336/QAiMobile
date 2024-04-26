@@ -8,5 +8,5 @@ interface AppDataStore {
     suspend fun saveIsLoggedIn(isLoggedIn: Boolean)
     val isLoggedIn: Flow<Boolean>
     suspend fun saveAccessToken(accessToken: String)
-    suspend fun getAccessToken(): String?
+    val accessToken: Flow<String>
 }
