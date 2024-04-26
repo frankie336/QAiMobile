@@ -17,6 +17,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
@@ -36,17 +37,33 @@ class LoginViewModel @Inject constructor(
     private val _uiEvent = MutableSharedFlow<LoginUiEvent>()
     val uiEvent: SharedFlow<LoginUiEvent> = _uiEvent.asSharedFlow()
 
+    init {
+        viewModelScope.launch {
+            val userCredentials = appDataStore.userCredentials.first()
+            _state.value = state.value.copy(
+                email = userCredentials.first ?: "",
+                password = userCredentials.second ?: ""
+            )
+        }
+    }
+
 
     fun onEvent(event: LoginViewModelEvent) {
-        when(event) {
+        when (event) {
             LoginViewModelEvent.Authenticate -> login(
                 state.value.email,
                 state.value.password,
-                state.value.isRememberMeChecked)
+                state.value.isRememberMeChecked
+            )
 
-            is LoginViewModelEvent.UpdateEmail -> _state.value = state.value.copy(email = event.email)
-            is LoginViewModelEvent.UpdatePassword -> _state.value = state.value.copy(password = event.password)
-            is LoginViewModelEvent.UpdateRememberMe -> _state.value = state.value.copy(isRememberMeChecked = event.rememberMe)
+            is LoginViewModelEvent.UpdateEmail -> _state.value =
+                state.value.copy(email = event.email)
+
+            is LoginViewModelEvent.UpdatePassword -> _state.value =
+                state.value.copy(password = event.password)
+
+            is LoginViewModelEvent.UpdateRememberMe -> _state.value =
+                state.value.copy(isRememberMeChecked = event.rememberMe)
         }
     }
 
@@ -58,7 +75,8 @@ class LoginViewModel @Inject constructor(
             }
 
             if (!email.isValidEmail()) {
-                _uiEvent.emit(LoginUiEvent.ShowError(resourceProvider.getString(R.string.please_enter_valid_email))
+                _uiEvent.emit(
+                    LoginUiEvent.ShowError(resourceProvider.getString(R.string.please_enter_valid_email))
                 )
                 return@launch
             }
@@ -81,7 +99,8 @@ class LoginViewModel @Inject constructor(
             when (result) {
                 is Success -> {
                     appDataStore.apply {
-                        saveUserCredentials(email, password)
+                        if (isRememberMe)
+                            saveUserCredentials(email, password)
                         saveAccessToken(result.data.access_token)
                         saveIsLoggedIn(true)
                     }
@@ -129,6 +148,6 @@ class LoginViewModel @Inject constructor(
 }
 
 sealed class LoginUiEvent {
-    data class ShowError(val message: String): LoginUiEvent()
-    data object Success: LoginUiEvent()
+    data class ShowError(val message: String) : LoginUiEvent()
+    data object Success : LoginUiEvent()
 }

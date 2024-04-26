@@ -53,13 +53,19 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import com.app.qaimobile.R
 import com.app.qaimobile.navigation.Destinations
+import com.app.qaimobile.ui.composables.ComposeTextView
 import com.app.qaimobile.ui.composables.LoadingDialog
+import com.app.qaimobile.ui.composables.PasswordTextField
+import com.app.qaimobile.ui.composables.SimpleTextField
 import com.app.qaimobile.ui.destinations.HomeScreenDestination
 import com.app.qaimobile.ui.destinations.LoginScreenDestination
+import com.app.qaimobile.ui.theme.CustomBoldTextStyle
+import com.app.qaimobile.ui.theme.CustomRegularTextStyle
 import com.app.qaimobile.ui.theme.QAiMobileTheme
 import com.app.qaimobile.util.Constants
 import com.app.qaimobile.util.openLink
@@ -83,7 +89,6 @@ fun LoginScreen(
     val context = LocalContext.current
     val activity = rememberActivityOrNull()
     val keyboardController = LocalSoftwareKeyboardController.current
-    var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         uiEvent.collect {
@@ -93,8 +98,8 @@ fun LoginScreen(
                 }
 
                 LoginUiEvent.Success -> {
-                    navHostController?.navigate(Destinations.HOME_ROUTE){
-                        popUpTo(Destinations.LOGIN_ROUTE){
+                    navHostController?.navigate(Destinations.HOME_ROUTE) {
+                        popUpTo(Destinations.LOGIN_ROUTE) {
                             inclusive = true
                         }
                     }
@@ -125,69 +130,37 @@ fun LoginScreen(
                 }
                 .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.Center) {
-                Text(
+                ComposeTextView(
                     text = stringResource(R.string.welcome_back),
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight(700),
-                    ),
+                    style = CustomBoldTextStyle.copy(fontSize = 48.sp),
                     modifier = Modifier
                         .padding(bottom = 32.dp)
                         .align(Alignment.CenterHorizontally)
                 )
-                OutlinedTextField(
+
+                SimpleTextField(
+                    modifier = Modifier.fillMaxWidth(),
                     value = state.email,
                     onValueChange = { onEvent(LoginViewModelEvent.UpdateEmail(it)) },
-                    placeholder = { Text(stringResource(R.string.email_address)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Email, imeAction = ImeAction.Next
-                    ),
+                    placeholder = stringResource(R.string.email_address),
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next,
                     singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        cursorColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-
                 )
-                OutlinedTextField(
+
+                PasswordTextField(
+                    modifier = Modifier.fillMaxWidth(),
                     value = state.password,
                     onValueChange = { onEvent(LoginViewModelEvent.UpdatePassword(it)) },
-                    placeholder = { Text(stringResource(R.string.password)) },
-                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password, imeAction = ImeAction.Done
-                    ),
+                    placeholder = stringResource(R.string.password),
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done,
+                    singleLine = true,
                     keyboardActions = KeyboardActions(onDone = {
                         keyboardController?.hide()
-                    }),
-                    singleLine = true,
-                    trailingIcon = {
-                        val image =
-                            if (passwordVisible) painterResource(id = R.drawable.ic_visibility)
-                            else painterResource(R.drawable.ic_visibility_off)
-
-                        val description = if (passwordVisible) "Hide password" else "Show password"
-
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(painter = image, description)
-                        }
-                    },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        cursorColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                    })
                 )
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Start,
@@ -201,7 +174,7 @@ fun LoginScreen(
                         )
                     }
                     Spacer(modifier = Modifier.padding(start = 8.dp))
-                    Text(text = stringResource(R.string.remember_me))
+                    ComposeTextView(text = stringResource(R.string.remember_me))
                 }
                 Button(
                     onClick = {
@@ -218,7 +191,9 @@ fun LoginScreen(
                         contentColor = MaterialTheme.colorScheme.onSecondary
                     )
                 ) {
-                    Text(text = stringResource(R.string.str_continue))
+                    ComposeTextView(
+                        text = stringResource(R.string.str_continue), style = CustomBoldTextStyle
+                    )
                 }
 
                 val forgotPasswordText = stringResource(R.string.forgot_password)
@@ -233,7 +208,11 @@ fun LoginScreen(
                     }
                 }
 
-                ClickableText(text = annotatedText, modifier = Modifier.padding(top = 16.dp)) { _ ->
+                ClickableText(
+                    text = annotatedText,
+                    modifier = Modifier.padding(top = 16.dp),
+                    style = CustomRegularTextStyle
+                ) { _ ->
                     println("Clicked on forgot password text")
                 }
 
@@ -246,6 +225,7 @@ fun LoginScreen(
                 ) {
                     Text(
                         text = stringResource(R.string.dont_have_an_account),
+                        style = CustomRegularTextStyle
                     )
                     Spacer(modifier = Modifier.width(8.dp))
 
@@ -260,7 +240,7 @@ fun LoginScreen(
                         }
                     }
 
-                    ClickableText(text = signUpAnnotatedText) { _ ->
+                    ClickableText(text = signUpAnnotatedText, style = CustomRegularTextStyle) { _ ->
                         println("Clicked on don't have an account text")
                     }
                 }
@@ -271,12 +251,9 @@ fun LoginScreen(
                     width = Dimension.matchParent
                     bottom.linkTo(parent.bottom, 16.dp)
                 }) {
-                Text(
-                    text = stringResource(R.string.terms_off_use),
-                    modifier = Modifier.clickable {
-                        activity?.openLink(Constants.TERMS_OF_USE_URL)
-                    }
-                )
+                Text(text = stringResource(R.string.terms_off_use), modifier = Modifier.clickable {
+                    activity?.openLink(Constants.TERMS_OF_USE_URL)
+                }, style = CustomRegularTextStyle)
                 Spacer(
                     modifier = Modifier
                         .padding(horizontal = 8.dp)
@@ -286,7 +263,7 @@ fun LoginScreen(
                 )
                 Text(text = stringResource(R.string.privacy_policy), modifier = Modifier.clickable {
                     activity?.openLink(Constants.PRIVACY_POLICY_URL)
-                })
+                }, style = CustomRegularTextStyle)
             }
         }
     }
@@ -297,9 +274,7 @@ fun LoginScreen(
 fun PreviewLoginScreen() {
     QAiMobileTheme {
         val state = LoginState(
-            email = "Hamza@gmail.com",
-            password = "123456",
-            isRememberMeChecked = true
+            email = "Hamza@gmail.com", password = "123456", isRememberMeChecked = true
         )
         LoginScreen(state = state)
     }
