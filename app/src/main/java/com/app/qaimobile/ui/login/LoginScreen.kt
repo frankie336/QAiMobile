@@ -12,12 +12,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
@@ -46,6 +43,7 @@ import androidx.constraintlayout.compose.Dimension
 import com.app.qaimobile.R
 import com.app.qaimobile.navigation.Destinations
 import com.app.qaimobile.ui.composables.ComposeTextView
+import com.app.qaimobile.ui.composables.CustomButton
 import com.app.qaimobile.ui.composables.LoadingDialog
 import com.app.qaimobile.ui.composables.PasswordTextField
 import com.app.qaimobile.ui.composables.SimpleTextField
@@ -117,7 +115,7 @@ fun LoginScreen(
                 verticalArrangement = Arrangement.Center) {
                 ComposeTextView(
                     text = stringResource(R.string.welcome_back),
-                    style = CustomBoldTextStyle.copy(fontSize = 48.sp),
+                    style = CustomBoldTextStyle.copy(fontSize = 36.sp),
                     modifier = Modifier
                         .padding(bottom = 32.dp)
                         .align(Alignment.CenterHorizontally)
@@ -161,25 +159,14 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.padding(start = 8.dp))
                     ComposeTextView(text = stringResource(R.string.remember_me))
                 }
-                Button(
+
+                CustomButton(
+                    btnText = stringResource(R.string.str_continue),
+                    modifier = Modifier.padding(top = 16.dp).fillMaxWidth(),
                     onClick = {
                         keyboardController?.hide()
                         onEvent(LoginViewModelEvent.Authenticate)
-                    },
-                    shape = RoundedCornerShape(4.dp),
-                    modifier = Modifier
-                        .padding(top = 16.dp)
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary,
-                        contentColor = MaterialTheme.colorScheme.onSecondary
-                    )
-                ) {
-                    ComposeTextView(
-                        text = stringResource(R.string.str_continue), style = CustomBoldTextStyle
-                    )
-                }
+                    })
 
                 val forgotPasswordText = stringResource(R.string.forgot_password)
                 val annotatedText = buildAnnotatedString {
@@ -198,7 +185,7 @@ fun LoginScreen(
                     modifier = Modifier.padding(top = 16.dp),
                     style = CustomRegularTextStyle
                 ) { _ ->
-                    println("Clicked on forgot password text")
+                    navHostController?.navigate(Destinations.FORGOT_PASSWORD_ROUTE)
                 }
 
                 Row(
@@ -225,7 +212,7 @@ fun LoginScreen(
                         }
                     }
 
-                    ClickableText(text = signUpAnnotatedText, style = CustomRegularTextStyle) { _ ->
+                    ClickableText(text = signUpAnnotatedText, style = CustomRegularTextStyle.copy(fontSize = 18.sp)) { _ ->
                         println("Clicked on don't have an account text")
                     }
                 }

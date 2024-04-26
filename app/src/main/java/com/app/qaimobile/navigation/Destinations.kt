@@ -5,4 +5,5 @@ object Destinations {
     const val SPLASH_ROUTE = "splash"
     const val LOGIN_ROUTE = "login"
     const val HOME_ROUTE = "home"
+    const val FORGOT_PASSWORD_ROUTE = "forgot_password"
 }
