@@ -18,7 +18,6 @@ import javax.inject.Singleton
 /**
  * Dagger Hilt module for providing network dependencies.
  */
-
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
@@ -27,7 +26,9 @@ object NetworkModule {
      * Provides base URL for the Retrofit instance.
      */
     @Provides
-    fun provideBaseUrl() = Constants.BASE_URL
+    fun provideBaseUrl(): String {
+        return "http://localhost:5000/" // Base URL set to your development server
+    }
 
     /**
      * Provides Gson instance for JSON serialization and deserialization.
