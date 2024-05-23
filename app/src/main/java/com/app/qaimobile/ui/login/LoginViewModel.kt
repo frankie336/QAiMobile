@@ -7,8 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.app.qaimobile.R
 import com.app.qaimobile.data.model.network.auth.LoginRequest
 import com.app.qaimobile.di.ResourceProvider
-import com.app.qaimobile.domain.Result.Failure
-import com.app.qaimobile.domain.Result.Success
+import com.app.qaimobile.domain.Result
 import com.app.qaimobile.domain.datastore.AppDataStore
 import com.app.qaimobile.domain.repository.UserRepository
 import com.app.qaimobile.util.isValidEmail
@@ -23,13 +22,13 @@ import java.io.IOException
 import java.util.concurrent.TimeoutException
 import javax.inject.Inject
 
-
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val repository: UserRepository,
     private val appDataStore: AppDataStore,
     private val resourceProvider: ResourceProvider
 ) : ViewModel() {
+
     private val _state = mutableStateOf(LoginState())
     val state: State<LoginState> = _state
 
@@ -45,7 +44,6 @@ class LoginViewModel @Inject constructor(
             )
         }
     }
-
 
     fun onEvent(event: LoginViewModelEvent) {
         when (event) {
@@ -63,6 +61,9 @@ class LoginViewModel @Inject constructor(
 
             is LoginViewModelEvent.UpdateRememberMe -> _state.value =
                 state.value.copy(isRememberMeChecked = event.rememberMe)
+
+            // Adding else branch to ensure exhaustiveness
+            else -> {}
         }
     }
 
@@ -85,18 +86,17 @@ class LoginViewModel @Inject constructor(
                 return@launch
             }
 
-            if (!resourceProvider.issNetworkAvailable()) {
+            if (!resourceProvider.isNetworkAvailable()) {
                 _uiEvent.emit(LoginUiEvent.ShowError(resourceProvider.getString(R.string.please_check_your_internet_connection)))
                 return@launch
             }
-
 
             val loginRequest = LoginRequest(email, password, isRememberMe)
             _state.value = state.value.copy(isLoading = true)
             val result = repository.login(loginRequest)
             _state.value = state.value.copy(isLoading = false)
             when (result) {
-                is Success -> {
+                is Result.Success -> {
                     appDataStore.apply {
                         if (isRememberMe)
                             saveUserCredentials(email, password)
@@ -108,7 +108,7 @@ class LoginViewModel @Inject constructor(
                     _uiEvent.emit(LoginUiEvent.Success)
                 }
 
-                is Failure -> {
+                is Result.Failure -> {
                     handleError(result.exception)
                 }
             }
@@ -132,12 +132,8 @@ class LoginViewModel @Inject constructor(
                     } else if (exception.code() == 500) {
                         _uiEvent.emit(LoginUiEvent.ShowError(resourceProvider.getString(R.string.something_went_wrong)))
                     } else {
-                        _uiEvent.emit(LoginUiEvent.ShowError(resourceProvider.getString(R.string.unknown_error_occoured)))
+                        _uiEvent.emit(LoginUiEvent.ShowError(resourceProvider.getString(R.string.unknown_error_occurred)))
                     }
-                }
-
-                is IllegalArgumentException -> {
-                    _uiEvent.emit(LoginUiEvent.ShowError(exception.message ?: exception.toString()))
                 }
 
                 else -> {
@@ -150,5 +146,12 @@ class LoginViewModel @Inject constructor(
 
 sealed class LoginUiEvent {
     data class ShowError(val message: String) : LoginUiEvent()
-    data object Success : LoginUiEvent()
+    object Success : LoginUiEvent()
+}
+
+sealed class LoginViewModelEvent {
+    object Authenticate : LoginViewModelEvent()
+    data class UpdateEmail(val email: String) : LoginViewModelEvent()
+    data class UpdatePassword(val password: String) : LoginViewModelEvent()
+    data class UpdateRememberMe(val rememberMe: Boolean) : LoginViewModelEvent()
 }

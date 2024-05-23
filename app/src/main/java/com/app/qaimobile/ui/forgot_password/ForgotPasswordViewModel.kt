@@ -42,7 +42,6 @@ class ForgotPasswordViewModel @Inject constructor(
 
     private fun resetPassword(email: String) {
         viewModelScope.launch {
-
             if (email.isBlank()) {
                 _uiEvent.emit(ForgotPasswordUiEvent.ShowError(resourceProvider.getString(R.string.please_enter_email)))
                 return@launch
@@ -52,7 +51,6 @@ class ForgotPasswordViewModel @Inject constructor(
                 _uiEvent.emit(ForgotPasswordUiEvent.ShowError(resourceProvider.getString(R.string.please_enter_valid_email)))
                 return@launch
             }
-
 
             try {
                 //repository.resetPassword(email)
@@ -73,45 +71,32 @@ class ForgotPasswordViewModel @Inject constructor(
                 is IOException -> {
                     _uiEvent.emit(ForgotPasswordUiEvent.ShowError(resourceProvider.getString(R.string.slower_internet_connection)))
                 }
-
                 is TimeoutException -> {
                     _uiEvent.emit(ForgotPasswordUiEvent.ShowError(resourceProvider.getString(R.string.timeout_error)))
                 }
-
                 is HttpException -> {
                     if (exception.code() == 401) {
                         _uiEvent.emit(ForgotPasswordUiEvent.ShowError(resourceProvider.getString(R.string.invalid_email_or_password)))
                     } else if (exception.code() == 500) {
                         _uiEvent.emit(ForgotPasswordUiEvent.ShowError(resourceProvider.getString(R.string.something_went_wrong)))
                     } else {
-                        _uiEvent.emit(ForgotPasswordUiEvent.ShowError(resourceProvider.getString(R.string.unknown_error_occoured)))
+                        _uiEvent.emit(ForgotPasswordUiEvent.ShowError(resourceProvider.getString(R.string.unknown_error_occurred)))  // Corrected spelling
                     }
                 }
-
                 is IllegalArgumentException -> {
-                    _uiEvent.emit(
-                        ForgotPasswordUiEvent.ShowError(
-                            exception.message ?: exception.toString()
-                        )
-                    )
+                    _uiEvent.emit(ForgotPasswordUiEvent.ShowError(exception.message ?: exception.toString()))
                 }
-
                 else -> {
-                    _uiEvent.emit(
-                        ForgotPasswordUiEvent.ShowError(
-                            exception.message ?: exception.toString()
-                        )
-                    )
+                    _uiEvent.emit(ForgotPasswordUiEvent.ShowError(exception.message ?: exception.toString()))
                 }
             }
         }
     }
-
 }
 
 sealed class ForgotPasswordUiEvent {
     data class ShowError(val message: String) : ForgotPasswordUiEvent()
-    data object Success : ForgotPasswordUiEvent()
+    object Success : ForgotPasswordUiEvent()
     data class Navigate(
         val route: String,
         val navOptionsBuilder: NavOptionsBuilder.() -> Unit = {}

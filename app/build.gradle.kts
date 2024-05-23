@@ -53,7 +53,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -70,34 +69,34 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    //Hilt Android
+    // Hilt Android
     implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
+    ksp(libs.hilt.compiler) // Correct usage in Kotlin DSL
     implementation(libs.hilt.navigation.compose)
 
-    //Constraint Layout
+    // Constraint Layout
     implementation(libs.constraintlayout.compose)
 
-    //Retrofit
+    // Retrofit
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.logging.interceptor)
 
-    //System UI Controller
+    // System UI Controller
     implementation(libs.accompanist.systemuicontroller)
 
-    //Compose Lifecycle
+    // Compose Lifecycle
     implementation(libs.lifecycle.runtime.compose)
 
-    //DataStore
+    // DataStore
     implementation(libs.datastore.preferences)
 
-    //Splash API
+    // Splash API
     implementation(libs.splash.screen)
 
     // Compose Destinations
     implementation(libs.compose.destinations.core)
-    ksp(libs.compose.destinations.ksp)
+    ksp(libs.compose.destinations.ksp) // Correct usage in Kotlin DSL
 }
 
 ksp {

@@ -1,17 +1,14 @@
+// com/app/qaimobile/di/NetworkModule.kt
 package com.app.qaimobile.di
 
-import com.app.qaimobile.data.remote.ApiService
 import com.app.qaimobile.util.Constants
 import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
@@ -26,21 +23,8 @@ object NetworkModule {
      * Provides base URL for the Retrofit instance.
      */
     @Provides
-    fun provideBaseUrl(): String {
-        return "http://localhost:5000/" // Base URL set to your development server
-    }
+    fun provideBaseUrl(): String = "http://localhost:5000/" // Base URL set to your development server
 
-    /**
-     * Provides Gson instance for JSON serialization and deserialization.
-     * @return Gson instance.
-     */
-    @Provides
-    fun provideGson(): Gson = GsonBuilder().create()
-
-    /**
-     * Provides HttpLoggingInterceptor for logging network requests and responses.
-     * @return HttpLoggingInterceptor instance.
-     */
     @Singleton
     @Provides
     fun provideOkHttpClient(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient =
@@ -51,11 +35,9 @@ object NetworkModule {
             .addInterceptor(loggingInterceptor)
             .addInterceptor { chain ->
                 val original = chain.request()
-                val requestBuilder =
-                    original.newBuilder()
-                        .header("Accept", "application/json")
-                        .method(original.method, original.body)
-
+                val requestBuilder = original.newBuilder()
+                    .header("Accept", "application/json")
+                    .method(original.method, original.body)
                 val request = requestBuilder.build()
                 chain.proceed(request)
             }.build()
@@ -66,33 +48,8 @@ object NetworkModule {
      */
     @Singleton
     @Provides
-    fun provideHttpInterceptor(): HttpLoggingInterceptor {
-        return HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        }
-    }
+    fun provideHttpInterceptor(): HttpLoggingInterceptor =
+        HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
 
-    /**
-     * Provides Retrofit instance for making network requests.
-     * @param baseUrl Base URL for the Retrofit instance.
-     * @param gson Gson instance for JSON serialization and deserialization.
-     * @param okHttpClient OkHttpClient instance for configuring network requests.
-     * @return Retrofit instance.
-     */
-    @Provides
-    @Singleton
-    fun provideRetrofit(baseUrl: String, gson: Gson, okHttpClient: OkHttpClient): Retrofit =
-        Retrofit.Builder()
-            .baseUrl(baseUrl)
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .client(okHttpClient)
-            .build()
-
-    /**
-     * Provides ApiService instance for making network requests.
-     * @param retrofit Retrofit instance for making network requests.
-     * @return ApiService instance.
-     */
-    @Provides
-    fun provideApiService(retrofit: Retrofit): ApiService = retrofit.create(ApiService::class.java)
+    // Removed provideGson to avoid duplicate bindings
 }
