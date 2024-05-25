@@ -5,6 +5,8 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.navigation
 import com.app.qaimobile.navigation.Destinations.APP_NAV_GRAPH_ROUTE
+import com.app.qaimobile.navigation.Destinations.CHAT_ROUTE
+
 import com.app.qaimobile.ui.destinations.ForgotPasswordScreenDestination
 import com.app.qaimobile.ui.destinations.HomeScreenDestination
 import com.app.qaimobile.ui.destinations.LoginScreenDestination
@@ -16,6 +18,8 @@ import com.app.qaimobile.ui.home.HomeViewModel
 import com.app.qaimobile.ui.login.LoginScreen
 import com.app.qaimobile.ui.login.LoginViewModel
 import com.app.qaimobile.ui.splash.SplashScreen
+import com.app.qaimobile.ui.chat.QComposerScreen  // Import the QComposerScreen
+import com.app.qaimobile.ui.chat.ChatViewModel  // Import the ChatViewModel
 import com.ramcosta.composedestinations.utils.composable
 
 fun NavGraphBuilder.appNavGraph(navController: NavController, startDestination: String) {
@@ -46,13 +50,23 @@ fun NavGraphBuilder.appNavGraph(navController: NavController, startDestination: 
                 state = forgotPasswordViewModel.state.value,
                 onEvent = forgotPasswordViewModel::onEvent,
                 uiEvent = forgotPasswordViewModel.uiEvent,
-                navHostController = destinationsNavigator(navController)
+                navHostController = destinationsNavigator(navorController)
             )
         }
 
         composable(SplashScreenDestination) {
             SplashScreen()
         }
-    }
 
+        // Adding composable for QComposerScreen
+        composable(CHAT_ROUTE) {
+            val chatViewModel: ChatViewModel = hiltViewModel()
+            QComposerScreen(
+                state = chatViewModel.state.value,
+                onEvent = chatViewModel::onEvent,
+                uiEvent = chatViewModel.uiEvent,
+                navHostController = destinationsNavigator(navController)
+            )
+        }
+    }
 }

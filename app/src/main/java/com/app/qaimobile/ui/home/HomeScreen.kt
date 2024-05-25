@@ -65,7 +65,12 @@ fun HomeScreen(
             }) {
                 Text(text = "Logout")
             }
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = {
+                navHostController?.navigate(Destinations.CHAT_ROUTE)
+            }) {
+                Text(text = "Go to Chat")
+            }
         }
-
     }
 }
