@@ -5,7 +5,6 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.navigation
 import com.app.qaimobile.navigation.Destinations.APP_NAV_GRAPH_ROUTE
-import com.app.qaimobile.navigation.Destinations.CHAT_ROUTE
 import com.app.qaimobile.ui.chat.QComposerScreen  // Import the QComposerScreen
 import com.app.qaimobile.ui.chat.ChatViewModel  // Import the ChatViewModel
 import com.app.qaimobile.ui.destinations.ForgotPasswordScreenDestination

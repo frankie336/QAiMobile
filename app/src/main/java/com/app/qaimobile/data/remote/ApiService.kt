@@ -25,6 +25,6 @@ interface ApiService {
      * This function is used to get the user's conversation sessions.
      * @return The response containing the list of conversation sessions.
      */
-    @GET("get_conversations")
+    @GET("bp_mobile_database/get_conversations")
     suspend fun getConversations(): Response<List<ConversationSessionDto>>
 }
