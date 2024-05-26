@@ -64,7 +64,9 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation("androidx.compose.material3:material3:1.1.0-alpha04") // Added specific version of Material3
+    implementation("androidx.compose.material3:material3:1.1.0-alpha04")
+    implementation(libs.androidx.room.common)
+    implementation("androidx.datastore:datastore-preferences:1.0.0") // Added DataStore Preferences dependency
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -76,9 +78,7 @@ dependencies {
 
     // Hilt Android
     implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
-
-    // Correct usage in Kotlin DSL
+    ksp(libs.hilt.compiler) // Correct usage in Kotlin DSL
     implementation(libs.hilt.navigation.compose)
 
     // Constraint Layout

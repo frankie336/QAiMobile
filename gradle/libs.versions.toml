@@ -20,6 +20,7 @@ composeLifecycle = "2.7.0"
 preferencesDataStore = "1.1.0"
 splashScreen = "1.0.1"
 composeDestinations = "1.9.63"
+roomCommon = "2.6.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -51,6 +52,7 @@ datastore-preferences = { group = "androidx.datastore", name = "datastore-prefer
 splash-screen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashScreen" }
 compose-destinations-core = { group = "io.github.raamcosta.compose-destinations", name = "core", version.ref = "composeDestinations" }
 compose-destinations-ksp = { group = "io.github.raamcosta.compose-destinations", name = "ksp", version.ref = "composeDestinations" }
+androidx-room-common = { group = "androidx.room", name = "room-common", version.ref = "roomCommon" }
 
 
 [plugins]

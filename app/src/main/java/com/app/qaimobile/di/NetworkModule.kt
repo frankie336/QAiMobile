@@ -1,8 +1,7 @@
-// com/app/qaimobile/di/NetworkModule.kt
 package com.app.qaimobile.di
 
+import com.app.qaimobile.data.remote.AuthInterceptor
 import com.app.qaimobile.util.Constants
-import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,16 +22,20 @@ object NetworkModule {
      * Provides base URL for the Retrofit instance.
      */
     @Provides
-    fun provideBaseUrl(): String = "http://localhost:5000/" // Base URL set to your development server
+    fun provideBaseUrl(): String = "http://10.0.2.2:5000/" // Base URL set to your development server
 
     @Singleton
     @Provides
-    fun provideOkHttpClient(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient =
+    fun provideOkHttpClient(
+        loggingInterceptor: HttpLoggingInterceptor,
+        authInterceptor: AuthInterceptor
+    ): OkHttpClient =
         OkHttpClient.Builder()
             .writeTimeout(Constants.WRITE_TIMEOUT, TimeUnit.SECONDS)
             .readTimeout(Constants.READ_TIMEOUT, TimeUnit.SECONDS)
             .connectTimeout(Constants.CONNECT_TIMEOUT, TimeUnit.SECONDS)
             .addInterceptor(loggingInterceptor)
+            .addInterceptor(authInterceptor)
             .addInterceptor { chain ->
                 val original = chain.request()
                 val requestBuilder = original.newBuilder()
