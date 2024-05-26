@@ -21,6 +21,8 @@ preferencesDataStore = "1.1.0"
 splashScreen = "1.0.1"
 composeDestinations = "1.9.63"
 roomCommon = "2.6.1"
+playServicesBasement = "18.3.0"
+appcompat = "1.6.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -53,6 +55,8 @@ splash-screen = { group = "androidx.core", name = "core-splashscreen", version.r
 compose-destinations-core = { group = "io.github.raamcosta.compose-destinations", name = "core", version.ref = "composeDestinations" }
 compose-destinations-ksp = { group = "io.github.raamcosta.compose-destinations", name = "ksp", version.ref = "composeDestinations" }
 androidx-room-common = { group = "androidx.room", name = "room-common", version.ref = "roomCommon" }
+play-services-basement = { group = "com.google.android.gms", name = "play-services-basement", version.ref = "playServicesBasement" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 
 
 [plugins]
