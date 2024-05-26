@@ -6,5 +6,5 @@ object Destinations {
     const val LOGIN_ROUTE = "login"
     const val HOME_ROUTE = "home"
     const val FORGOT_PASSWORD_ROUTE = "forgot_password"
-    const val CHAT_ROUTE = "qcomposer"
+    const val CHAT_ROUTE = "chat"
 }
