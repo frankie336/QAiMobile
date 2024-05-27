@@ -3,24 +3,26 @@ package com.app.qaimobile.ui.chat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.qaimobile.data.model.network.ConversationSessionDto
-import com.app.qaimobile.data.remote.ApiService
+import com.app.qaimobile.data.model.network.toDto
+import com.app.qaimobile.domain.repository.ConversationRepository
+import com.app.qaimobile.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
-    private val apiService: ApiService
+    private val conversationRepository: ConversationRepository
 ) : ViewModel() {
 
     private val _uiEvent = MutableSharedFlow<ChatUiEvent>()
     val uiEvent: SharedFlow<ChatUiEvent> = _uiEvent
 
-    // Define state property
     private val _state = MutableStateFlow(ChatState())
     val state: StateFlow<ChatState> = _state
 
@@ -36,15 +38,20 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = ChatState(isLoading = true)
             try {
-                val response = apiService.getConversations()
-                if (response.isSuccessful) {
-                    response.body()?.let { conversations ->
-                        _uiEvent.emit(ChatUiEvent.ConversationsLoaded(conversations))
-                    } ?: run {
-                        _uiEvent.emit(ChatUiEvent.ShowError("No conversations found"))
+                val result = conversationRepository.syncConversations()
+                when (result) {
+                    is Result.Success -> {
+                        conversationRepository.allConversations.collect { conversations ->
+                            val conversationDtos = conversations.map { it.toDto() }
+                            _uiEvent.emit(ChatUiEvent.ConversationsLoaded(conversationDtos))
+                        }
                     }
-                } else {
-                    _uiEvent.emit(ChatUiEvent.ShowError("Failed to load conversations"))
+                    is Result.Error -> {
+                        _uiEvent.emit(ChatUiEvent.ShowError("Failed to load conversations: ${result.exception.localizedMessage}"))
+                    }
+                    is Result.Loading -> {
+                        // Handle loading state if needed
+                    }
                 }
             } catch (e: Exception) {
                 _uiEvent.emit(ChatUiEvent.ShowError("Error: ${e.localizedMessage}"))

@@ -1,5 +1,6 @@
 package com.app.qaimobile.data.repository
 
+import android.util.Log
 import com.app.qaimobile.data.local.ConversationSessionDao
 import com.app.qaimobile.data.local.ConversationSession
 import com.app.qaimobile.data.remote.ApiService
@@ -17,6 +18,10 @@ class ConversationRepositoryImpl @Inject constructor(
         conversationSessionDao.getAllConversationSessions()
 
     override suspend fun refreshConversations(userId: String) {
+        if (userId.isBlank()) {
+            throw IllegalArgumentException("UserId cannot be blank")
+        }
+
         val response = apiService.getConversations()
         if (response.isSuccessful) {
             response.body()?.let { conversationsFromApi ->
@@ -24,7 +29,7 @@ class ConversationRepositoryImpl @Inject constructor(
                     ConversationSession(
                         id = dto.id,
                         threadId = dto.threadId,
-                        userId = dto.userId,
+                        userId = dto.userId ?: userId, // Use the provided userId if the dto.userId is null
                         thread = dto.thread,
                         summary = dto.summary,
                         messages = dto.messages.toString(),
@@ -33,16 +38,28 @@ class ConversationRepositoryImpl @Inject constructor(
                 }
                 conversationSessionDao.insertAll(conversationEntities)
             }
+        } else {
+            Log.e("ConversationRepository", "Failed to fetch conversations: ${response.errorBody()?.string()}")
         }
     }
 
     override suspend fun syncConversations(): Result<Unit> {
         return try {
-            val userId = "" // obtain the user ID from some source (e.g., data store or session manager)
+            val userId = getUserId() // Implement a method to obtain the user ID from some source (e.g., data store or session manager)
+            if (userId.isNullOrEmpty()) {
+                throw IllegalArgumentException("UserId cannot be null or empty")
+            }
             refreshConversations(userId)
+            Log.d("ConversationRepository", "Conversations synced successfully")
             Result.Success(Unit)
         } catch (e: Exception) {
+            Log.e("ConversationRepository", "Error syncing conversations", e)
             Result.Error(e)
         }
+    }
+
+    private fun getUserId(): String {
+        // Implement this method to obtain the user ID
+        return "c8475de4-e267-4ef7-bf76-f51138721727" // Example user ID, replace with actual logic
     }
 }

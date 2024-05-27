@@ -16,6 +16,7 @@ class AppDataStoreImpl(private val context: Context) : AppDataStore {
         private const val KEY_ACCESS_TOKEN = "access_token"
         private const val KEY_IS_LOGGED_IN = "is_logged_in"
         private const val KEY_USER_CREDENTIALS = "user_credentials"
+        private const val KEY_USER_ID = "user_id" // Add this constant
     }
 
     override suspend fun saveAccessToken(token: String) {
@@ -52,6 +53,17 @@ class AppDataStoreImpl(private val context: Context) : AppDataStore {
             val email = credentials?.firstOrNull()
             val password = credentials?.lastOrNull()
             emit(email to password)
+        }
+    }
+
+    // Implement the new methods for userId
+    override suspend fun saveUserId(userId: String) {
+        sharedPreferences.edit().putString(KEY_USER_ID, userId).apply()
+    }
+
+    override fun getUserId(): Flow<String?> {
+        return flow {
+            emit(sharedPreferences.getString(KEY_USER_ID, null))
         }
     }
 

@@ -15,7 +15,7 @@ class LocalDatabaseHelper(context: Context) : SQLiteOpenHelper(context, LocalDat
                 ${LocalDatabaseContract.ConversationSessionEntry.COLUMN_ID} TEXT NOT NULL,
                 ${LocalDatabaseContract.ConversationSessionEntry.COLUMN_THREAD_ID} TEXT,
                 ${LocalDatabaseContract.ConversationSessionEntry.COLUMN_CREATED_AT} INTEGER NOT NULL,
-                ${LocalDatabaseContract.ConversationSessionEntry.COLUMN_USER_ID} TEXT NOT NULL,
+                ${LocalDatabaseContract.ConversationSessionEntry.COLUMN_USER_ID} TEXT,
                 ${LocalDatabaseContract.ConversationSessionEntry.COLUMN_THREAD} TEXT,
                 ${LocalDatabaseContract.ConversationSessionEntry.COLUMN_SUMMARY} TEXT,
                 ${LocalDatabaseContract.ConversationSessionEntry.COLUMN_MESSAGES} TEXT NOT NULL DEFAULT '[]',

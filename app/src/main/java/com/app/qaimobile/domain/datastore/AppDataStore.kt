@@ -9,4 +9,12 @@ interface AppDataStore {
     fun getIsLoggedIn(): Flow<Boolean>
     suspend fun saveAccessToken(accessToken: String)
     fun getAccessToken(): Flow<String?>
+
+    suspend fun saveUserId(userId: String)
+    fun getUserId(): Flow<String?>
+
+
+
+
+
 }

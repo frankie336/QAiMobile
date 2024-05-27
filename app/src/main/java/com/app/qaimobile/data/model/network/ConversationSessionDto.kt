@@ -8,18 +8,18 @@ data class ConversationSessionDto(
     val userId: String,
     val thread: String?,
     val summary: String?,
-    val messages: List<String>,
+    val messages: String,
     val appDesignation: String?
 )
 
-fun ConversationSessionDto.toConversationSession(): ConversationSession {
-    return ConversationSession(
+fun ConversationSession.toDto(): ConversationSessionDto {
+    return ConversationSessionDto(
         id = id,
         threadId = threadId,
         userId = userId,
         thread = thread,
         summary = summary,
-        messages = messages.toString(),
+        messages = messages,
         appDesignation = appDesignation
     )
 }
