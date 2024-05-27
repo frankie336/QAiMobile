@@ -60,7 +60,17 @@ fun QComposerScreen(
         LoadingDialog()
     }
 
-    Scaffold { paddingValues ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.LightGray,
+                    titleContentColor = Color.Black
+                )
+            )
+        }
+    ) { paddingValues ->
         ConstraintLayout(
             modifier = Modifier
                 .fillMaxSize()
