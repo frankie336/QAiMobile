@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.app.qaimobile"
-        minSdk = 24
+        minSdk = 25
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -64,14 +64,16 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation("androidx.compose.material3:material3:1.1.0-alpha04")
+    implementation("androidx.compose.material3:material3:1.1.0") // Updated to the latest stable version
     implementation(libs.androidx.room.common)
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation(libs.play.services.basement)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.room.ktx)
-    implementation(libs.androidx.adapters) // DataStore Preferences dependency
+    implementation(libs.androidx.adapters)
+    implementation(libs.androidx.compose.material)
 
+    // DataStore Preferences dependency
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
