@@ -23,6 +23,8 @@ composeDestinations = "1.9.63"
 roomCommon = "2.6.1"
 playServicesBasement = "18.3.0"
 appcompat = "1.6.1"
+roomKtx = "2.6.1"
+adapters = "3.2.0-alpha11"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -57,6 +59,8 @@ compose-destinations-ksp = { group = "io.github.raamcosta.compose-destinations",
 androidx-room-common = { group = "androidx.room", name = "room-common", version.ref = "roomCommon" }
 play-services-basement = { group = "com.google.android.gms", name = "play-services-basement", version.ref = "playServicesBasement" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
+androidx-adapters = { group = "androidx.databinding", name = "adapters", version.ref = "adapters" }
 
 
 [plugins]

@@ -68,7 +68,9 @@ dependencies {
     implementation(libs.androidx.room.common)
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation(libs.play.services.basement)
-    implementation(libs.androidx.appcompat) // Added DataStore Preferences dependency
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.adapters) // DataStore Preferences dependency
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -80,8 +82,12 @@ dependencies {
 
     // Hilt Android
     implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler) // Correct usage in Kotlin DSL
+    ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
+
+    // Room
+    implementation("androidx.room:room-runtime:2.5.0") // Updated to latest version
+    ksp("androidx.room:room-compiler:2.5.0")
 
     // Constraint Layout
     implementation(libs.constraintlayout.compose)

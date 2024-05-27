@@ -1,8 +1,9 @@
+package com.app.qaimobile.data.local
+
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.provider.BaseColumns
-import com.app.qaimobile.data.local.LocalDatabaseContract
 
 class LocalDatabaseHelper(context: Context) : SQLiteOpenHelper(context, LocalDatabaseContract.DATABASE_NAME, null, LocalDatabaseContract.DATABASE_VERSION) {
 

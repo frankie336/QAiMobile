@@ -27,7 +27,7 @@ data class ConversationSession(
     val summary: String? = null,
 
     @ColumnInfo(name = LocalDatabaseContract.ConversationSessionEntry.COLUMN_MESSAGES)
-    val messages: List<String> = emptyList(),
+    val messages: String = "[]",
 
     @ColumnInfo(name = LocalDatabaseContract.ConversationSessionEntry.COLUMN_APP_DESIGNATION)
     val appDesignation: String? = null

@@ -19,7 +19,7 @@ fun ConversationSessionDto.toConversationSession(): ConversationSession {
         userId = userId,
         thread = thread,
         summary = summary,
-        messages = messages,
+        messages = messages.toString(),
         appDesignation = appDesignation
     )
 }
