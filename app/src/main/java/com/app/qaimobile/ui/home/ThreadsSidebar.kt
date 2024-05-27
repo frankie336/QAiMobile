@@ -27,7 +27,6 @@ fun ThreadsSidebar(
     ) {
         items(conversations) { conversation ->
             ThreadItem(
-                threadId = conversation.threadId ?: "",
                 summary = conversation.summary ?: "",
                 onThreadClick = onThreadClick,
                 modifier = Modifier.fillMaxWidth()

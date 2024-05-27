@@ -44,10 +44,12 @@ class ChatViewModel @Inject constructor(
                         conversationRepository.allConversations.collect { conversations ->
                             val conversationDtos = conversations.map { it.toDto() }
                             _uiEvent.emit(ChatUiEvent.ConversationsLoaded(conversationDtos))
+                            _state.value = ChatState(isLoading = false) // Set isLoading to false after successful synchronization
                         }
                     }
                     is Result.Error -> {
                         _uiEvent.emit(ChatUiEvent.ShowError("Failed to load conversations: ${result.exception.localizedMessage}"))
+                        _state.value = ChatState(isLoading = false) // Set isLoading to false after failed synchronization
                     }
                     is Result.Loading -> {
                         // Handle loading state if needed
@@ -55,8 +57,7 @@ class ChatViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 _uiEvent.emit(ChatUiEvent.ShowError("Error: ${e.localizedMessage}"))
-            } finally {
-                _state.value = ChatState(isLoading = false)
+                _state.value = ChatState(isLoading = false) // Set isLoading to false after exception
             }
         }
     }
