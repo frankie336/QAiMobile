@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
             QAiMobileTheme {
                 val navController = rememberNavController()
                 LaunchedEffect(Unit) {
-                    val isLoggedIn = dataStore.isLoggedIn.first()
+                    val isLoggedIn = dataStore.getIsLoggedIn().first()
                     val startDestination = if (isLoggedIn) {
                         HomeScreenDestination.route
                     } else {

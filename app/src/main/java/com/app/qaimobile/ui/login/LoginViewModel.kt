@@ -37,7 +37,7 @@ class LoginViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val userCredentials = appDataStore.userCredentials.first()
+            val userCredentials = appDataStore.getUserCredentials().first()
             _state.value = state.value.copy(
                 email = userCredentials.first ?: "",
                 password = userCredentials.second ?: ""
@@ -102,7 +102,7 @@ class LoginViewModel @Inject constructor(
                             saveUserCredentials(email, password)
                         else
                             saveUserCredentials("", "")
-                        saveAccessToken(result.data.access_token)
+                        saveAccessToken(result.data.accessToken)
                         saveIsLoggedIn(true)
                     }
                     _uiEvent.emit(LoginUiEvent.Success)

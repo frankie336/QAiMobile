@@ -4,9 +4,9 @@ import kotlinx.coroutines.flow.Flow
 
 interface AppDataStore {
     suspend fun saveUserCredentials(email: String, password: String)
-    val userCredentials: Flow<Pair<String?, String?>>
+    fun getUserCredentials(): Flow<Pair<String?, String?>>
     suspend fun saveIsLoggedIn(isLoggedIn: Boolean)
-    val isLoggedIn: Flow<Boolean>
+    fun getIsLoggedIn(): Flow<Boolean>
     suspend fun saveAccessToken(accessToken: String)
-    val accessToken: Flow<String>
+    fun getAccessToken(): Flow<String?>
 }
