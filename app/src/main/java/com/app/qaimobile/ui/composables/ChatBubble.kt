@@ -1,4 +1,4 @@
-package com.app.qaimobile.ui.chat
+package com.app.qaimobile.ui.composables
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -20,28 +20,30 @@ fun ChatBubble(message: Message) {
     val alignment = if (isUser) Alignment.End else Alignment.Start
     val padding = if (isUser) PaddingValues(start = 40.dp, end = 8.dp) else PaddingValues(start = 8.dp, end = 40.dp)
 
-    Box(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
-            .align(alignment)
+            .padding(padding),
+        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .background(color = bubbleColor, shape = RoundedCornerShape(8.dp))
                 .padding(8.dp)
         ) {
-            Text(
-                text = if (isUser) "You:" else "Assistant:",
-                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                color = Color.Black
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = message.content.firstOrNull()?.text?.value ?: "",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black
-            )
+            Column {
+                Text(
+                    text = if (isUser) "You:" else "Assistant:",
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                    color = Color.Black
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = message.content.firstOrNull()?.text?.value ?: "",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Black
+                )
+            }
         }
     }
 }
