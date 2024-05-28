@@ -12,6 +12,18 @@ data class ConversationSessionDto(
     val appDesignation: String?
 )
 
+fun ConversationSessionDto.toEntity(): ConversationSession {
+    return ConversationSession(
+        id = id,
+        threadId = threadId,
+        userId = userId,
+        thread = thread,
+        summary = summary,
+        messages = messages,
+        appDesignation = appDesignation
+    )
+}
+
 fun ConversationSession.toDto(): ConversationSessionDto {
     return ConversationSessionDto(
         id = id,

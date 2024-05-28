@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,9 +22,12 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.app.qaimobile.data.local.ConversationSession
 import com.app.qaimobile.data.model.network.ConversationSessionDto
+import com.app.qaimobile.data.model.network.toEntity
 import com.app.qaimobile.navigation.Destinations
 import com.app.qaimobile.ui.composables.LoadingDialog
+import com.app.qaimobile.ui.home.ThreadsSidebar
 import com.app.qaimobile.util.showToast
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
@@ -44,6 +48,7 @@ fun QComposerScreen(
     var message by remember { mutableStateOf("") }
     var conversations by remember { mutableStateOf<List<ConversationSessionDto>?>(null) }
     val state by viewModel.state.collectAsState()
+    var showSidebar by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.fetchConversations()
@@ -63,7 +68,12 @@ fun QComposerScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("") },
+                title = { Text("Chat") },
+                navigationIcon = {
+                    IconButton(onClick = { showSidebar = !showSidebar }) {
+                        Icon(Icons.Default.Menu, contentDescription = "Toggle Sidebar")
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.LightGray,
                     titleContentColor = Color.Black
@@ -76,13 +86,29 @@ fun QComposerScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            val (column, row) = createRefs()
+            val (sidebar, content, row) = createRefs()
+
+            if (showSidebar) {
+                ThreadsSidebar(
+                    conversations = conversations?.map { it.toEntity() } ?: emptyList(),
+                    onThreadClick = {
+                        showSidebar = false
+                        // Handle thread click
+                    },
+                    modifier = Modifier.constrainAs(sidebar) {
+                        top.linkTo(parent.top)
+                        start.linkTo(parent.start)
+                        bottom.linkTo(row.top)
+                        height = Dimension.fillToConstraints
+                    }
+                )
+            }
 
             Column(
                 modifier = Modifier
-                    .constrainAs(column) {
+                    .constrainAs(content) {
                         top.linkTo(parent.top)
-                        start.linkTo(parent.start)
+                        start.linkTo(parent.start, if (showSidebar) 200.dp else 0.dp)
                         end.linkTo(parent.end)
                         bottom.linkTo(row.top)
                         height = Dimension.fillToConstraints
@@ -94,7 +120,6 @@ fun QComposerScreen(
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                 } else {
                     conversations?.let {
-                        // Display conversations
                         for (conversation in it) {
                             Text(text = conversation.id, modifier = Modifier.padding(8.dp))
                         }
