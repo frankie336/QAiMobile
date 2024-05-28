@@ -70,7 +70,7 @@ class ChatViewModel @Inject constructor(
     fun selectConversation(sessionId: String) {
         viewModelScope.launch {
             conversationRepository.getConversationSessionById(sessionId).collect { session ->
-                val messages = session.messages.toMessageList() // Convert JSON string to list of messages
+                val messages = session.messages.toMessageList().sortedBy { it.createdAt } // Sort messages by created_at
                 _selectedConversationMessages.value = messages
             }
         }
