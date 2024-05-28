@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.app.qaimobile.data.local.ConversationSession
 import com.app.qaimobile.data.model.network.ConversationSessionDto
 import com.app.qaimobile.data.model.network.toEntity
 import com.app.qaimobile.navigation.Destinations
@@ -119,11 +118,14 @@ fun QComposerScreen(
                 if (state.isLoading) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                 } else {
+                    // Commented out the list of conversation IDs
+                    /*
                     conversations?.let {
                         for (conversation in it) {
                             Text(text = conversation.id, modifier = Modifier.padding(8.dp))
                         }
                     } ?: Text(text = "No conversations available")
+                    */
                 }
             }
 
