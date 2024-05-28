@@ -3,7 +3,9 @@ package com.app.qaimobile.ui.chat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.qaimobile.data.model.network.ConversationSessionDto
+import com.app.qaimobile.data.model.network.Message
 import com.app.qaimobile.data.model.network.toDto
+import com.app.qaimobile.data.model.network.toMessageList
 import com.app.qaimobile.domain.repository.ConversationRepository
 import com.app.qaimobile.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,8 +27,8 @@ class ChatViewModel @Inject constructor(
     private val _conversations = MutableStateFlow<List<ConversationSessionDto>>(emptyList())
     val conversations: StateFlow<List<ConversationSessionDto>> = _conversations
 
-    private val _selectedConversationMessages = MutableStateFlow<String?>(null)
-    val selectedConversationMessages: StateFlow<String?> = _selectedConversationMessages
+    private val _selectedConversationMessages = MutableStateFlow<List<Message>?>(null)
+    val selectedConversationMessages: StateFlow<List<Message>?> = _selectedConversationMessages
 
     fun onEvent(event: ChatViewModelEvent) {
         when (event) {
@@ -68,7 +70,8 @@ class ChatViewModel @Inject constructor(
     fun selectConversation(sessionId: String) {
         viewModelScope.launch {
             conversationRepository.getConversationSessionById(sessionId).collect { session ->
-                _selectedConversationMessages.value = session.messages
+                val messages = session.messages.toMessageList() // Convert JSON string to list of messages
+                _selectedConversationMessages.value = messages
             }
         }
     }

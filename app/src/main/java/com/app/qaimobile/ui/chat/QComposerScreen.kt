@@ -22,23 +22,17 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.app.qaimobile.data.local.ConversationSession
 import com.app.qaimobile.data.model.network.ConversationSessionDto
 import com.app.qaimobile.data.model.network.toEntity
 import com.app.qaimobile.navigation.Destinations
 import com.app.qaimobile.ui.composables.LoadingDialog
 import com.app.qaimobile.ui.home.ThreadsSidebar
 import com.app.qaimobile.util.showToast
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.SharedFlow
 import kotlin.reflect.KFunction1
-
-data class Message(
-    val role: String,
-    val content: Map<String, String>
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination(route = Destinations.CHAT_ROUTE)
@@ -62,8 +56,8 @@ fun QComposerScreen(
         uiEvent.collect { event ->
             when (event) {
                 is ChatUiEvent.ShowError -> showToast(context, event.message)
-                is ChatUiEvent.ConversationsLoaded -> { /* Handle loaded conversations if needed */ }
                 ChatUiEvent.Success -> {}
+                is ChatUiEvent.ConversationsLoaded -> {} // No action needed here
             }
         }
     }
@@ -126,10 +120,9 @@ fun QComposerScreen(
                 if (state.isLoading) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                 } else {
-                    selectedMessages?.let { messagesJson ->
-                        val messages: List<Message> = Gson().fromJson(messagesJson, object : TypeToken<List<Message>>() {}.type)
+                    selectedMessages?.let { messages ->
                         messages.forEach { message ->
-                            Text(text = "${message.role}: ${message.content["text"]}", modifier = Modifier.padding(8.dp))
+                            ChatBubble(message)
                         }
                     } ?: Text(text = "No conversation selected", modifier = Modifier.align(Alignment.CenterHorizontally))
                 }
