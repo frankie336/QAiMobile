@@ -8,4 +8,5 @@ interface ConversationRepository {
     val allConversations: Flow<List<ConversationSession>>
     suspend fun refreshConversations(userId: String)
     suspend fun syncConversations(): Result<Unit>
+    fun getConversationSessionById(sessionId: String): Flow<ConversationSession> // Add this line
 }

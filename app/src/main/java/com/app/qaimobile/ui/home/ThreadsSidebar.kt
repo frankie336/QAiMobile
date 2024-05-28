@@ -26,12 +26,12 @@ fun ThreadsSidebar(
             .fillMaxHeight()
             .width(200.dp)
             .background(color = MaterialTheme.colorScheme.surface)
-            .border(1.dp, Color.LightGray, androidx.compose.foundation.shape.RoundedCornerShape(0.dp))
+            .border(width = 1.dp, color = Color.LightGray)  // Adding light grey border
     ) {
         items(conversations) { conversation ->
             ThreadItem(
                 summary = conversation.summary ?: "",
-                onThreadClick = onThreadClick,
+                onThreadClick = { onThreadClick(conversation.id) },
                 modifier = Modifier.fillMaxWidth()
             )
         }

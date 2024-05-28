@@ -1,8 +1,8 @@
 package com.app.qaimobile.data.repository
 
 import android.util.Log
-import com.app.qaimobile.data.local.ConversationSessionDao
 import com.app.qaimobile.data.local.ConversationSession
+import com.app.qaimobile.data.local.ConversationSessionDao
 import com.app.qaimobile.data.remote.ApiService
 import com.app.qaimobile.domain.repository.ConversationRepository
 import com.app.qaimobile.util.Result
@@ -56,6 +56,10 @@ class ConversationRepositoryImpl @Inject constructor(
             Log.e("ConversationRepository", "Error syncing conversations", e)
             Result.Error(e)
         }
+    }
+
+    override fun getConversationSessionById(sessionId: String): Flow<ConversationSession> {
+        return conversationSessionDao.getConversationSessionById(sessionId)
     }
 
     private fun getUserId(): String {

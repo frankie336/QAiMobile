@@ -28,10 +28,17 @@ import com.app.qaimobile.navigation.Destinations
 import com.app.qaimobile.ui.composables.LoadingDialog
 import com.app.qaimobile.ui.home.ThreadsSidebar
 import com.app.qaimobile.util.showToast
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.SharedFlow
 import kotlin.reflect.KFunction1
+
+data class Message(
+    val role: String,
+    val content: Map<String, String>
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination(route = Destinations.CHAT_ROUTE)
@@ -45,8 +52,9 @@ fun QComposerScreen(
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
     var message by remember { mutableStateOf("") }
-    var conversations by remember { mutableStateOf<List<ConversationSessionDto>?>(null) }
     val state by viewModel.state.collectAsState()
+    val conversations by viewModel.conversations.collectAsState()
+    val selectedMessages by viewModel.selectedConversationMessages.collectAsState()
     var showSidebar by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -54,7 +62,7 @@ fun QComposerScreen(
         uiEvent.collect { event ->
             when (event) {
                 is ChatUiEvent.ShowError -> showToast(context, event.message)
-                is ChatUiEvent.ConversationsLoaded -> conversations = event.conversations
+                is ChatUiEvent.ConversationsLoaded -> { /* Handle loaded conversations if needed */ }
                 ChatUiEvent.Success -> {}
             }
         }
@@ -89,10 +97,10 @@ fun QComposerScreen(
 
             if (showSidebar) {
                 ThreadsSidebar(
-                    conversations = conversations?.map { it.toEntity() } ?: emptyList(),
-                    onThreadClick = {
+                    conversations = conversations.map { it.toEntity() },
+                    onThreadClick = { sessionId ->
                         showSidebar = false
-                        // Handle thread click
+                        viewModel.selectConversation(sessionId)
                     },
                     modifier = Modifier.constrainAs(sidebar) {
                         top.linkTo(parent.top)
@@ -118,14 +126,12 @@ fun QComposerScreen(
                 if (state.isLoading) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                 } else {
-                    // Commented out the list of conversation IDs
-                    /*
-                    conversations?.let {
-                        for (conversation in it) {
-                            Text(text = conversation.id, modifier = Modifier.padding(8.dp))
+                    selectedMessages?.let { messagesJson ->
+                        val messages: List<Message> = Gson().fromJson(messagesJson, object : TypeToken<List<Message>>() {}.type)
+                        messages.forEach { message ->
+                            Text(text = "${message.role}: ${message.content["text"]}", modifier = Modifier.padding(8.dp))
                         }
-                    } ?: Text(text = "No conversations available")
-                    */
+                    } ?: Text(text = "No conversation selected", modifier = Modifier.align(Alignment.CenterHorizontally))
                 }
             }
 
