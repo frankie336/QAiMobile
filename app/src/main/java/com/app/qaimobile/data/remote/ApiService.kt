@@ -27,4 +27,27 @@ interface ApiService {
      */
     @GET("bp_mobile_database/get_conversations")
     suspend fun getConversations(): Response<List<ConversationSessionDto>>
+
+    /**
+     * This function is used to send a message to a conversation.
+     * @param sendMessageRequest The request object containing the conversation ID and message.
+     * @return The response indicating the result of the send operation.
+     */
+    @POST("bp_q_mobile_messages/send_message")
+    suspend fun sendMessage(@Body sendMessageRequest: SendMessageRequest): Response<SendMessageResponse>
 }
+
+/**
+ * Data class representing the request to send a message.
+ */
+data class SendMessageRequest(
+    val conversationId: String,
+    val message: String
+)
+
+/**
+ * Data class representing the response from sending a message.
+ */
+data class SendMessageResponse(
+    val message: String
+)

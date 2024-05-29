@@ -9,6 +9,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -22,6 +24,12 @@ abstract class DataStoreModule {
         @Singleton
         fun provideDataStoreManager(context: Context): DataStoreManager {
             return DataStoreManager(context)
+        }
+
+        @Provides
+        @Singleton
+        fun provideDataStore(dataStoreManager: DataStoreManager): DataStore<Preferences> {
+            return dataStoreManager.dataStore
         }
     }
 }

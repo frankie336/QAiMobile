@@ -58,6 +58,7 @@ android {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    implementation("androidx.datastore:datastore-preferences:1.0.0") // Ensure this line is present only once
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
@@ -66,7 +67,6 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation("androidx.compose.material3:material3:1.1.0") // Updated to the latest stable version
     implementation(libs.androidx.room.common)
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation(libs.play.services.basement)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.room.ktx)

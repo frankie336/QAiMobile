@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.app.qaimobile.data.model.network.ConversationSessionDto
 import com.app.qaimobile.data.model.network.toEntity
 import com.app.qaimobile.navigation.Destinations
 import com.app.qaimobile.ui.composables.ChatBubble
@@ -32,7 +31,6 @@ import com.app.qaimobile.util.showToast
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.SharedFlow
-import kotlin.reflect.KFunction1
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination(route = Destinations.CHAT_ROUTE)
@@ -41,7 +39,7 @@ fun QComposerScreen(
     viewModel: ChatViewModel = hiltViewModel(),
     uiEvent: SharedFlow<ChatUiEvent> = viewModel.uiEvent,
     navHostController: DestinationsNavigator? = null,
-    onEvent: KFunction1<ChatViewModelEvent, Unit>
+    onEvent: (ChatUiEvent) -> Unit
 ) {
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -50,6 +48,7 @@ fun QComposerScreen(
     val conversations by viewModel.conversations.collectAsState()
     val selectedMessages by viewModel.selectedConversationMessages.collectAsState()
     var showSidebar by remember { mutableStateOf(false) }
+    var selectedThreadId by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.fetchConversations()
@@ -57,7 +56,9 @@ fun QComposerScreen(
             when (event) {
                 is ChatUiEvent.ShowError -> showToast(context, event.message)
                 ChatUiEvent.Success -> {}
-                is ChatUiEvent.ConversationsLoaded -> {} // No action needed here
+                is ChatUiEvent.ConversationsLoaded -> {}
+                is ChatUiEvent.SelectConversation -> {}
+                is ChatUiEvent.SendMessage -> {} // This will be handled in the view model
             }
         }
     }
@@ -94,7 +95,8 @@ fun QComposerScreen(
                     conversations = conversations.map { it.toEntity() },
                     onThreadClick = { sessionId ->
                         showSidebar = false
-                        viewModel.selectConversation(sessionId)
+                        onEvent(ChatUiEvent.SelectConversation(sessionId))
+                        selectedThreadId = sessionId
                     },
                     modifier = Modifier.constrainAs(sidebar) {
                         top.linkTo(parent.top)
@@ -164,9 +166,11 @@ fun QComposerScreen(
 
                     IconButton(
                         onClick = {
-                            viewModel.onEvent(ChatViewModelEvent.SendMessage(message))
-                            message = ""
-                            keyboardController?.hide()
+                            selectedThreadId?.let {
+                                onEvent(ChatUiEvent.SendMessage(it, message))
+                                message = ""
+                                keyboardController?.hide()
+                            } ?: showToast(context, "No conversation selected")
                         },
                         modifier = Modifier
                             .size(40.dp)

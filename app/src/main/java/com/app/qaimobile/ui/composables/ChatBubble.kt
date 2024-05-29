@@ -7,12 +7,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.app.qaimobile.data.model.network.Message
+import com.app.qaimobile.util.parseMarkdownContent
 
 @Composable
 fun ChatBubble(message: Message) {
@@ -50,7 +50,7 @@ fun ChatBubble(message: Message) {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = message.content.firstOrNull()?.text?.value ?: "",
+                    text = parseMarkdownContent(message.content.firstOrNull()?.text?.value ?: ""),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Black
                 )

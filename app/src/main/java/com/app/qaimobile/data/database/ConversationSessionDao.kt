@@ -1,3 +1,4 @@
+// ConversationSessionDao.kt
 package com.app.qaimobile.data.local
 
 import androidx.room.Dao

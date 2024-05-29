@@ -7,6 +7,7 @@ import androidx.navigation.navigation
 import com.app.qaimobile.navigation.Destinations.APP_NAV_GRAPH_ROUTE
 import com.app.qaimobile.ui.chat.QComposerScreen  // Import the QComposerScreen
 import com.app.qaimobile.ui.chat.ChatViewModel  // Import the ChatViewModel
+import com.app.qaimobile.ui.chat.ChatUiEvent  // Import the ChatUiEvent
 import com.app.qaimobile.ui.destinations.ForgotPasswordScreenDestination
 import com.app.qaimobile.ui.destinations.HomeScreenDestination
 import com.app.qaimobile.ui.destinations.LoginScreenDestination
@@ -61,7 +62,6 @@ fun NavGraphBuilder.appNavGraph(navController: NavController, startDestination: 
         composable(QComposerScreenDestination) {
             val chatViewModel: ChatViewModel = hiltViewModel()
             QComposerScreen(
-                //state = chatViewModel.state.value,
                 onEvent = chatViewModel::onEvent,
                 uiEvent = chatViewModel.uiEvent,
                 navHostController = destinationsNavigator(navController)

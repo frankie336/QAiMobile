@@ -1,3 +1,4 @@
+// ConversationRepositoryImpl.kt
 package com.app.qaimobile.data.repository
 
 import android.util.Log
@@ -26,16 +27,18 @@ class ConversationRepositoryImpl @Inject constructor(
         if (response.isSuccessful) {
             response.body()?.let { conversationsFromApi ->
                 val conversationEntities = conversationsFromApi.map { dto ->
+                    Log.d("ConversationRepository", "Received conversation: $dto")
                     ConversationSession(
                         id = dto.id,
                         threadId = dto.threadId,
                         userId = dto.userId ?: userId, // Use the provided userId if the dto.userId is null
                         thread = dto.thread,
                         summary = dto.summary,
-                        messages = dto.messages.toString(),
+                        messages = dto.messages,
                         appDesignation = dto.appDesignation
                     )
                 }
+                Log.d("ConversationRepository", "Inserting conversations: $conversationEntities")
                 conversationSessionDao.insertAll(conversationEntities)
             }
         } else {
