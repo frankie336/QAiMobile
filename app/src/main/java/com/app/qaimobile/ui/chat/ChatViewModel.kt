@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.app.qaimobile.data.datastore.PreferencesKeys
 import com.app.qaimobile.data.model.network.ConversationSessionDto
 import com.app.qaimobile.data.model.network.Message
+import com.app.qaimobile.data.model.network.MessageContent
 import com.app.qaimobile.data.model.network.toDto
 import com.app.qaimobile.data.model.network.toMessageList
 import com.app.qaimobile.data.remote.ApiService
@@ -19,6 +20,7 @@ import javax.inject.Inject
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import com.app.qaimobile.data.model.network.MessageText
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
@@ -76,12 +78,12 @@ class ChatViewModel @Inject constructor(
                             val conversationDtos = conversations.map { it.toDto() }
                             _conversations.value = conversationDtos
                             _uiEvent.emit(ChatUiEvent.ConversationsLoaded(conversationDtos))
-                            _state.value = ChatState(isLoading = false) // Set isLoading to false after successful synchronization
+                            _state.value = ChatState(isLoading = false)
                         }
                     }
                     is Result.Error -> {
                         _uiEvent.emit(ChatUiEvent.ShowError("Failed to load conversations: ${result.exception.localizedMessage}"))
-                        _state.value = ChatState(isLoading = false) // Set isLoading to false after failed synchronization
+                        _state.value = ChatState(isLoading = false)
                     }
                     is Result.Loading -> {
                         // Handle loading state if needed
@@ -89,7 +91,7 @@ class ChatViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 _uiEvent.emit(ChatUiEvent.ShowError("Error: ${e.localizedMessage}"))
-                _state.value = ChatState(isLoading = false) // Set isLoading to false after exception
+                _state.value = ChatState(isLoading = false)
             }
         }
     }
@@ -98,7 +100,7 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch {
             conversationRepository.getConversationSessionById(sessionId).collect { session ->
                 Log.d("ChatViewModel", "Selected conversation with threadId: ${session.threadId}")
-                val messages = session.messages.toMessageList().sortedBy { it.createdAt } // Sort messages by created_at
+                val messages = session.messages.toMessageList().sortedBy { it.createdAt }
                 _selectedConversationMessages.value = messages
             }
         }
@@ -106,11 +108,43 @@ class ChatViewModel @Inject constructor(
 
     private fun sendMessage(conversationId: String, message: String) {
         viewModelScope.launch {
+            val userMessage = Message(
+                id = generateId(),
+                assistantId = null,
+                attachments = emptyList(),
+                completedAt = null,
+                content = listOf(MessageContent(
+                    text = MessageText(
+                        annotations = emptyList(),
+                        value = message
+                    ),
+                    type = "text"
+                )),
+                createdAt = System.currentTimeMillis(),
+                incompleteAt = null,
+                incompleteDetails = null,
+                metadata = emptyMap(),
+                objectType = "thread.message",
+                role = "user",
+                runId = null,
+                status = null,
+                threadId = conversationId
+            )
+            // Update UI immediately with user's message
+            _selectedConversationMessages.update { it?.plus(userMessage) }
+
             try {
                 val request = SendMessageRequest(conversationId, message)
                 val response = apiService.sendMessage(request)
                 if (response.isSuccessful) {
-                    _uiEvent.emit(ChatUiEvent.Success)
+                    val assistantMessage = response.body()?.assistantMessage
+                    if (assistantMessage != null) {
+                        // Update UI with assistant's message
+                        _selectedConversationMessages.update { it?.plus(assistantMessage) }
+                        _uiEvent.emit(ChatUiEvent.Success)
+                    } else {
+                        _uiEvent.emit(ChatUiEvent.ShowError("Failed to receive assistant's message"))
+                    }
                 } else {
                     _uiEvent.emit(ChatUiEvent.ShowError("Failed to send message: ${response.message()}"))
                 }
@@ -118,5 +152,9 @@ class ChatViewModel @Inject constructor(
                 _uiEvent.emit(ChatUiEvent.ShowError("Error: ${e.localizedMessage}"))
             }
         }
+    }
+
+    private fun generateId(): String {
+        return java.util.UUID.randomUUID().toString()
     }
 }

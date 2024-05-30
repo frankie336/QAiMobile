@@ -3,6 +3,7 @@ package com.app.qaimobile.data.remote
 import com.app.qaimobile.data.model.network.ConversationSessionDto
 import com.app.qaimobile.data.model.network.auth.LoginRequest
 import com.app.qaimobile.data.model.network.auth.LoginResponse
+import com.app.qaimobile.data.model.network.Message
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -49,5 +50,5 @@ data class SendMessageRequest(
  * Data class representing the response from sending a message.
  */
 data class SendMessageResponse(
-    val message: String
+    val assistantMessage: Message?
 )

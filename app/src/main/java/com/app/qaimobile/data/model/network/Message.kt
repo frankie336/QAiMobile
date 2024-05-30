@@ -46,7 +46,12 @@ data class Message(
     val status: String?,
     @SerializedName("thread_id")
     val threadId: String
-)
+) {
+    sealed class Content {
+        data class Text(val value: String) : Content()
+        // Add other content types if needed, e.g., Image, File, etc.
+    }
+}
 
 fun String.toMessageList(): List<Message> {
     return Gson().fromJson(this, Array<Message>::class.java).toList()
