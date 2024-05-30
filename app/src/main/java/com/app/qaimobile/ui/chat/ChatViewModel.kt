@@ -11,6 +11,7 @@ import com.app.qaimobile.data.model.network.toDto
 import com.app.qaimobile.data.model.network.toMessageList
 import com.app.qaimobile.data.remote.ApiService
 import com.app.qaimobile.data.remote.SendMessageRequest
+import com.app.qaimobile.data.remote.SendMessageResponse
 import com.app.qaimobile.util.Result
 import com.app.qaimobile.domain.repository.ConversationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -51,6 +52,7 @@ class ChatViewModel @Inject constructor(
             }
             is ChatUiEvent.SelectConversation -> {
                 viewModelScope.launch {
+                    refreshConversations()
                     dataStore.edit { preferences ->
                         preferences[PreferencesKeys.SELECTED_CONVERSATION_ID] = event.conversationId
                     }
@@ -148,6 +150,16 @@ class ChatViewModel @Inject constructor(
                 } else {
                     _uiEvent.emit(ChatUiEvent.ShowError("Failed to send message: ${response.message()}"))
                 }
+            } catch (e: Exception) {
+                _uiEvent.emit(ChatUiEvent.ShowError("Error: ${e.localizedMessage}"))
+            }
+        }
+    }
+
+    private fun refreshConversations() {
+        viewModelScope.launch {
+            try {
+                conversationRepository.refreshConversations("userId") // Pass the userId as needed
             } catch (e: Exception) {
                 _uiEvent.emit(ChatUiEvent.ShowError("Error: ${e.localizedMessage}"))
             }

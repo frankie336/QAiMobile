@@ -34,7 +34,7 @@ interface ApiService {
      * @param sendMessageRequest The request object containing the conversation ID and message.
      * @return The response indicating the result of the send operation.
      */
-    @POST("bp_q_mobile_messages/send_message")
+    @POST("bp_gpt_mobile/send_message")
     suspend fun sendMessage(@Body sendMessageRequest: SendMessageRequest): Response<SendMessageResponse>
 }
 

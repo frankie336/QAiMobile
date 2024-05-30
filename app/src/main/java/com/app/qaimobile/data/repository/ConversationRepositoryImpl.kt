@@ -1,5 +1,4 @@
-// ConversationRepositoryImpl.kt
-package com.app.qaimobile.data.repository
+package com.app.qaimobile.repository
 
 import android.util.Log
 import com.app.qaimobile.data.local.ConversationSession
@@ -8,8 +7,11 @@ import com.app.qaimobile.data.remote.ApiService
 import com.app.qaimobile.domain.repository.ConversationRepository
 import com.app.qaimobile.util.Result
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class ConversationRepositoryImpl @Inject constructor(
     private val conversationSessionDao: ConversationSessionDao,
     private val apiService: ApiService
