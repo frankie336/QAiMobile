@@ -1,5 +1,6 @@
 package com.app.qaimobile.ui.chat
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -31,6 +32,7 @@ import com.app.qaimobile.util.showToast
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination(route = Destinations.CHAT_ROUTE)
@@ -57,8 +59,11 @@ fun QComposerScreen(
                 is ChatUiEvent.ShowError -> showToast(context, event.message)
                 ChatUiEvent.Success -> {}
                 is ChatUiEvent.ConversationsLoaded -> {}
-                is ChatUiEvent.SelectConversation -> {}
-                is ChatUiEvent.SendMessage -> {} // This will be handled in the view model
+                is ChatUiEvent.SelectConversation -> {
+                    selectedThreadId = event.conversationId
+                    Log.d("QComposerScreen", "Selected Conversation ID: $selectedThreadId")
+                }
+                is ChatUiEvent.SendMessage -> TODO()  // Properly handle SendMessage event
             }
         }
     }
@@ -97,6 +102,7 @@ fun QComposerScreen(
                         showSidebar = false
                         onEvent(ChatUiEvent.SelectConversation(sessionId))
                         selectedThreadId = sessionId
+                        Log.d("QComposerScreen", "Thread Clicked: $selectedThreadId")
                     },
                     modifier = Modifier.constrainAs(sidebar) {
                         top.linkTo(parent.top)
@@ -166,11 +172,14 @@ fun QComposerScreen(
 
                     IconButton(
                         onClick = {
-                            selectedThreadId?.let {
-                                onEvent(ChatUiEvent.SendMessage(it, message))
+                            if (selectedThreadId != null) {
+                                Log.d("QComposerScreen", "Sending Message: $message to $selectedThreadId")
+                                onEvent(ChatUiEvent.SendMessage(selectedThreadId!!, message))
                                 message = ""
                                 keyboardController?.hide()
-                            } ?: showToast(context, "No conversation selected")
+                            } else {
+                                showToast(context, "Please select a conversation first")
+                            }
                         },
                         modifier = Modifier
                             .size(40.dp)
