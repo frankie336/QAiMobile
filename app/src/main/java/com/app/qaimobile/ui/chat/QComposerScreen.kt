@@ -5,19 +5,14 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.Assistant
-import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -40,6 +35,7 @@ import com.app.qaimobile.ui.home.ThreadsSidebar
 import com.app.qaimobile.util.showToast
 import com.ramcosta.composedestinations.annotation.Destination
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination(route = Destinations.CHAT_ROUTE)
@@ -60,6 +56,7 @@ fun QComposerScreen(
     var showSidebar by remember { mutableStateOf(false) }
     var selectedThreadId by remember { mutableStateOf<String?>(null) }
     var expanded by remember { mutableStateOf(false) } // For menu expansion state
+    val listState = rememberLazyListState()
 
     val modelMapping = mapOf(
         "gpt-4o" to "4o",
@@ -80,6 +77,12 @@ fun QComposerScreen(
                 }
                 is ChatUiEvent.SendMessage -> TODO()  // Properly handle SendMessage event
             }
+        }
+    }
+
+    LaunchedEffect(selectedMessages) {
+        if (selectedMessages != null && selectedMessages!!.isNotEmpty()) {
+            listState.animateScrollToItem(selectedMessages!!.size - 1)
         }
     }
 
@@ -214,7 +217,8 @@ fun QComposerScreen(
                 )
             }
 
-            Column(
+            LazyColumn(
+                state = listState,
                 modifier = Modifier
                     .constrainAs(content) {
                         top.linkTo(parent.top)
@@ -223,17 +227,11 @@ fun QComposerScreen(
                         bottom.linkTo(row.top)
                         height = Dimension.fillToConstraints
                     }
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.Center
             ) {
-                if (state.isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-                } else {
-                    selectedMessages?.let { messages ->
-                        messages.forEach { message ->
-                            ChatBubble(message)
-                        }
-                    } ?: Text("No conversation selected", modifier = Modifier.align(Alignment.CenterHorizontally))
+                selectedMessages?.let { messages ->
+                    items(messages.size) { index ->
+                        ChatBubble(messages[index])
+                    }
                 }
             }
 

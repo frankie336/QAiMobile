@@ -154,16 +154,9 @@ class ChatViewModel @Inject constructor(
                 val response = apiService.sendMessage(request)
 
                 if (response.isSuccessful) {
-                    // If the response is successful, retrieve the assistant's message
-                    val assistantMessage = response.body()?.assistantMessage
-
-                    if (assistantMessage != null) {
-                        // Update UI with assistant's message
-                        _selectedConversationMessages.update { it?.plus(assistantMessage) }
-                        _uiEvent.emit(ChatUiEvent.Success)
-                    } else {
-                        _uiEvent.emit(ChatUiEvent.ShowError("Failed to receive assistant's message"))
-                    }
+                    // If the response is successful, trigger a local database refresh
+                    refreshConversations()
+                    _uiEvent.emit(ChatUiEvent.Success)
                 } else {
                     _uiEvent.emit(ChatUiEvent.ShowError("Failed to send message: ${response.message()}"))
                 }
