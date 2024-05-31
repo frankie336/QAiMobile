@@ -11,6 +11,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
@@ -51,6 +53,7 @@ fun QComposerScreen(
     val selectedMessages by viewModel.selectedConversationMessages.collectAsState()
     var showSidebar by remember { mutableStateOf(false) }
     var selectedThreadId by remember { mutableStateOf<String?>(null) }
+    var expanded by remember { mutableStateOf(false) } // For menu expansion state
 
     LaunchedEffect(Unit) {
         viewModel.fetchConversations()
@@ -79,6 +82,61 @@ fun QComposerScreen(
                 navigationIcon = {
                     IconButton(onClick = { showSidebar = !showSidebar }) {
                         Icon(Icons.Default.Menu, contentDescription = "Toggle Sidebar")
+                    }
+                },
+                actions = {
+                    Box {
+                        IconButton(onClick = { expanded = !expanded }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "Menu")
+                        }
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                            offset = DpOffset((-160).dp, (-16).dp) // Adjust the offset to position the menu correctly
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Files") },
+                                onClick = {
+                                    expanded = false
+                                    Log.d("QComposerScreen", "Files clicked")
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Settings") },
+                                onClick = {
+                                    expanded = false
+                                    Log.d("QComposerScreen", "Settings clicked")
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Models") },
+                                onClick = {
+                                    expanded = false
+                                    Log.d("QComposerScreen", "Models clicked")
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Profile") },
+                                onClick = {
+                                    expanded = false
+                                    Log.d("QComposerScreen", "Profile clicked")
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Select Personality") },
+                                onClick = {
+                                    expanded = false
+                                    Log.d("QComposerScreen", "Select Personality clicked")
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Logout") },
+                                onClick = {
+                                    expanded = false
+                                    Log.d("QComposerScreen", "Logout clicked")
+                                }
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -132,7 +190,7 @@ fun QComposerScreen(
                         messages.forEach { message ->
                             ChatBubble(message)
                         }
-                    } ?: Text(text = "No conversation selected", modifier = Modifier.align(Alignment.CenterHorizontally))
+                    } ?: Text("No conversation selected", modifier = Modifier.align(Alignment.CenterHorizontally))
                 }
             }
 
@@ -160,8 +218,7 @@ fun QComposerScreen(
                         placeholder = { Text("Type a message") },
                         modifier = Modifier
                             .weight(1f)
-                            .background(color = Color.Transparent, shape = RoundedCornerShape(24.dp))
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                            .background(color = Color.Transparent, shape = RoundedCornerShape(24.dp)),
                         colors = TextFieldDefaults.textFieldColors(
                             containerColor = Color.Transparent,
                             focusedIndicatorColor = Color.Transparent,
