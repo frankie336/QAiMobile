@@ -19,7 +19,8 @@ class DataStoreManager(context: Context) : AppDataStore {
         val IS_LOGGED_IN_KEY = stringPreferencesKey("is_logged_in")
         val ACCESS_TOKEN_KEY = stringPreferencesKey("access_token")
         val USER_ID_KEY = stringPreferencesKey("user_id")
-        val PERSONALITY_KEY = stringPreferencesKey("personality") // Add this line
+        val PERSONALITY_KEY = stringPreferencesKey("personality")
+        val SELECTED_MODEL_KEY = stringPreferencesKey("selected_model") // Add this line
     }
 
     override suspend fun saveUserCredentials(email: String, password: String) {
@@ -63,7 +64,6 @@ class DataStoreManager(context: Context) : AppDataStore {
         preferences[USER_ID_KEY]
     }
 
-    // Add these methods
     suspend fun savePersonality(personality: String) {
         dataStore.edit { preferences ->
             preferences[PERSONALITY_KEY] = personality
@@ -72,5 +72,16 @@ class DataStoreManager(context: Context) : AppDataStore {
 
     fun getPersonality(): Flow<String?> = dataStore.data.map { preferences ->
         preferences[PERSONALITY_KEY]
+    }
+
+    // Add these methods
+    suspend fun saveSelectedModel(model: String) {
+        dataStore.edit { preferences ->
+            preferences[SELECTED_MODEL_KEY] = model
+        }
+    }
+
+    fun getSelectedModel(): Flow<String?> = dataStore.data.map { preferences ->
+        preferences[SELECTED_MODEL_KEY]
     }
 }

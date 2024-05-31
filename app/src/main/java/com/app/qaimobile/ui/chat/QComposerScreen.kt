@@ -3,6 +3,7 @@ package com.app.qaimobile.ui.chat
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -11,8 +12,12 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Assistant
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -50,9 +55,16 @@ fun QComposerScreen(
     val state by viewModel.state.collectAsState()
     val conversations by viewModel.conversations.collectAsState()
     val selectedMessages by viewModel.selectedConversationMessages.collectAsState()
+    val selectedModel by viewModel.selectedModel.collectAsState(initial = "4o") // Set default selection to "gpt-4o"
     var showSidebar by remember { mutableStateOf(false) }
     var selectedThreadId by remember { mutableStateOf<String?>(null) }
     var expanded by remember { mutableStateOf(false) } // For menu expansion state
+
+    val modelMapping = mapOf(
+        "4o" to "gpt-4o",
+        "4" to "gpt-4-turbo-2024-04-09",
+        "3.5" to "gpt-3.5-turbo"
+    )
 
     LaunchedEffect(Unit) {
         viewModel.fetchConversations()
@@ -77,7 +89,35 @@ fun QComposerScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Chat") },
+                title = {
+                    var modelDropdownExpanded by remember { mutableStateOf(false) }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(
+                            onClick = { modelDropdownExpanded = !modelDropdownExpanded }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Assistant,
+                                contentDescription = "Model Icon",
+                                //tint = Color.Yellow
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = modelDropdownExpanded,
+                            onDismissRequest = { modelDropdownExpanded = false }
+                        ) {
+                            modelMapping.keys.forEach { key ->
+                                DropdownMenuItem(
+                                    text = { Text(modelMapping[key] ?: key) },
+                                    onClick = {
+                                        viewModel.saveSelectedModel(key)
+                                        modelDropdownExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                        Text(modelMapping[selectedModel] ?: "Model")
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = { showSidebar = !showSidebar }) {
                         Icon(Icons.Default.Menu, contentDescription = "Toggle Sidebar")

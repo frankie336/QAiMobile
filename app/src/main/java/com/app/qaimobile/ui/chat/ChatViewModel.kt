@@ -1,6 +1,9 @@
 package com.app.qaimobile.ui.chat
 
 import android.util.Log
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.qaimobile.data.datastore.DataStoreManager
@@ -13,15 +16,12 @@ import com.app.qaimobile.data.model.network.toDto
 import com.app.qaimobile.data.model.network.toMessageList
 import com.app.qaimobile.data.remote.ApiService
 import com.app.qaimobile.data.remote.SendMessageRequest
-import com.app.qaimobile.util.Result
 import com.app.qaimobile.domain.repository.ConversationRepository
+import com.app.qaimobile.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
@@ -41,6 +41,9 @@ class ChatViewModel @Inject constructor(
 
     private val _selectedConversationMessages = MutableStateFlow<List<Message>?>(null)
     val selectedConversationMessages: StateFlow<List<Message>?> = _selectedConversationMessages
+
+    private val _selectedModel = MutableStateFlow<String>("3.5") // Default model
+    val selectedModel: StateFlow<String> = _selectedModel.asStateFlow()
 
     fun onEvent(event: ChatUiEvent) {
         when (event) {
@@ -136,8 +139,8 @@ class ChatViewModel @Inject constructor(
             _selectedConversationMessages.update { it?.plus(userMessage) }
 
             try {
-                val personality = dataStoreManager.getPersonality().first() ?: "default_personality"
-                val request = SendMessageRequest(conversationId, message, personality)
+                val personality = dataStoreManager.getPersonality() // Updated to return String
+                val request = SendMessageRequest(conversationId, message, personality.toString())
                 val response = apiService.sendMessage(request)
                 if (response.isSuccessful) {
                     val assistantMessage = response.body()?.assistantMessage
@@ -169,5 +172,22 @@ class ChatViewModel @Inject constructor(
 
     private fun generateId(): String {
         return java.util.UUID.randomUUID().toString()
+    }
+
+    fun saveSelectedModel(model: String) {
+        viewModelScope.launch {
+            _selectedModel.value = model
+            dataStoreManager.saveSelectedModel(model)
+        }
+    }
+
+    init {
+        viewModelScope.launch {
+            // Retrieve the selected model from DataStore
+            val savedModel = dataStoreManager.getSelectedModel()
+            savedModel?.let {
+                _selectedModel.value = it.toString()
+            }
+        }
     }
 }
