@@ -16,10 +16,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.app.qaimobile.navigation.Destinations
 import com.app.qaimobile.util.showToast
 import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 
@@ -28,7 +28,7 @@ import kotlinx.coroutines.flow.SharedFlow
 fun HomeScreen(
     onEvent: (HomeViewModelEvent) -> Unit = {},
     uiEvent: SharedFlow<HomeUiEvent> = MutableSharedFlow(),
-    navHostController: DestinationsNavigator? = null
+    navHostController: NavController? = null
 ) {
     val context = LocalContext.current
 

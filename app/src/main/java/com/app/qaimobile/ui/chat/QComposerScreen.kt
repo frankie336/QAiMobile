@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.app.qaimobile.data.model.network.toEntity
 import com.app.qaimobile.navigation.Destinations
 import com.app.qaimobile.ui.composables.ChatBubble
@@ -32,9 +33,7 @@ import com.app.qaimobile.ui.composables.LoadingDialog
 import com.app.qaimobile.ui.home.ThreadsSidebar
 import com.app.qaimobile.util.showToast
 import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination(route = Destinations.CHAT_ROUTE)
@@ -42,7 +41,7 @@ import kotlinx.coroutines.launch
 fun QComposerScreen(
     viewModel: ChatViewModel = hiltViewModel(),
     uiEvent: SharedFlow<ChatUiEvent> = viewModel.uiEvent,
-    navHostController: DestinationsNavigator? = null,
+    navHostController: NavController,
     onEvent: (ChatUiEvent) -> Unit
 ) {
     val context = LocalContext.current
@@ -126,6 +125,7 @@ fun QComposerScreen(
                                 text = { Text("Select Personality") },
                                 onClick = {
                                     expanded = false
+                                    navHostController.navigate(Destinations.PERSONALITY_SELECTION_ROUTE) // Navigate to the PersonalitySelectionScreen
                                     Log.d("QComposerScreen", "Select Personality clicked")
                                 }
                             )

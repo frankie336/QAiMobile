@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.navigation.NavController
 import com.app.qaimobile.R
 import com.app.qaimobile.navigation.Destinations
 import com.app.qaimobile.ui.composables.ComposeTextView
@@ -56,7 +57,6 @@ import com.app.qaimobile.util.openLink
 import com.app.qaimobile.util.rememberActivityOrNull
 import com.app.qaimobile.util.showToast
 import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 
@@ -67,7 +67,7 @@ fun LoginScreen(
     state: LoginState = LoginState(),
     onEvent: (LoginViewModelEvent) -> Unit = {},
     uiEvent: SharedFlow<LoginUiEvent> = MutableSharedFlow(),
-    navHostController: DestinationsNavigator? = null
+    navHostController: NavController? = null
 ) {
 
     val context = LocalContext.current
