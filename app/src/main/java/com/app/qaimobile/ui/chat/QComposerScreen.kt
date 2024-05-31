@@ -33,6 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.app.qaimobile.data.model.network.toEntity
 import com.app.qaimobile.navigation.Destinations
+import com.app.qaimobile.ui.composables.AnimatedOrb
 import com.app.qaimobile.ui.composables.ChatBubble
 import com.app.qaimobile.ui.composables.LoadingDialog
 import com.app.qaimobile.ui.home.ThreadsSidebar
@@ -61,9 +62,9 @@ fun QComposerScreen(
     var expanded by remember { mutableStateOf(false) } // For menu expansion state
 
     val modelMapping = mapOf(
-        "4o" to "gpt-4o",
-        "4" to "gpt-4-turbo-2024-04-09",
-        "3.5" to "gpt-3.5-turbo"
+        "gpt-4o" to "4o",
+        "gpt-4-turbo-2024-04-09" to "4",
+        "gpt-3.5-turbo" to "3.5"
     )
 
     LaunchedEffect(Unit) {
@@ -97,8 +98,7 @@ fun QComposerScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Assistant,
-                                contentDescription = "Model Icon",
-                                //tint = Color.Yellow
+                                contentDescription = "Model Icon"
                             )
                         }
                         DropdownMenu(
@@ -115,6 +115,9 @@ fun QComposerScreen(
                                 )
                             }
                         }
+                        Spacer(modifier = Modifier.weight(1f))
+                        AnimatedOrb()
+                        Spacer(modifier = Modifier.weight(1f))
                         Text(modelMapping[selectedModel] ?: "Model")
                     }
                 },
@@ -131,7 +134,7 @@ fun QComposerScreen(
                         DropdownMenu(
                             expanded = expanded,
                             onDismissRequest = { expanded = false },
-                            offset = DpOffset((-160).dp, (-16).dp) // Adjust the offset to position the menu correctly
+                            offset = DpOffset((-160).dp, (-16).dp)
                         ) {
                             DropdownMenuItem(
                                 text = { Text("Files") },
@@ -165,7 +168,7 @@ fun QComposerScreen(
                                 text = { Text("Select Personality") },
                                 onClick = {
                                     expanded = false
-                                    navHostController.navigate(Destinations.PERSONALITY_SELECTION_ROUTE) // Navigate to the PersonalitySelectionScreen
+                                    navHostController.navigate(Destinations.PERSONALITY_SELECTION_ROUTE)
                                     Log.d("QComposerScreen", "Select Personality clicked")
                                 }
                             )
