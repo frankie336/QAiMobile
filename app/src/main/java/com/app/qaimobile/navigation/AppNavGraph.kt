@@ -63,12 +63,8 @@ fun NavGraphBuilder.appNavGraph(navController: NavController, startDestination: 
 
         composable(Destinations.PERSONALITY_SELECTION_ROUTE) {
             PersonalitySelectionScreen(
-                navHostController = navController
+                navController = navController
             )
         }
     }
-}
-
-fun PersonalitySelectionScreen(navHostController: NavController) {
-
 }
