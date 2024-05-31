@@ -44,7 +44,8 @@ interface ApiService {
 data class SendMessageRequest(
     val conversationId: String,
     val message: String,
-    val personality: String
+    val personality: String,
+    val selectedModel: String
 )
 
 

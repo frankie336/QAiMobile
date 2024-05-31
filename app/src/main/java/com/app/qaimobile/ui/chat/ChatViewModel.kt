@@ -48,7 +48,7 @@ class ChatViewModel @Inject constructor(
     fun onEvent(event: ChatUiEvent) {
         when (event) {
             is ChatUiEvent.ShowError -> {
-                // Handle error
+                // Handle error events
             }
             is ChatUiEvent.ConversationsLoaded -> {
                 _conversations.value = event.conversations
@@ -67,7 +67,7 @@ class ChatViewModel @Inject constructor(
                 sendMessage(event.conversationId, event.message)
             }
             is ChatUiEvent.Success -> {
-                // Handle success
+                // Handle success events
             }
         }
     }
@@ -113,18 +113,21 @@ class ChatViewModel @Inject constructor(
 
     private fun sendMessage(conversationId: String, message: String) {
         viewModelScope.launch {
+            // Create a new user message object
             val userMessage = Message(
                 id = generateId(),
                 assistantId = null,
                 attachments = emptyList(),
                 completedAt = null,
-                content = listOf(MessageContent(
-                    text = MessageText(
-                        annotations = emptyList(),
-                        value = message
-                    ),
-                    type = "text"
-                )),
+                content = listOf(
+                    MessageContent(
+                        text = MessageText(
+                            annotations = emptyList(),
+                            value = message
+                        ),
+                        type = "text"
+                    )
+                ),
                 createdAt = System.currentTimeMillis(),
                 incompleteAt = null,
                 incompleteDetails = null,
@@ -135,15 +138,25 @@ class ChatViewModel @Inject constructor(
                 status = null,
                 threadId = conversationId
             )
+
             // Update UI immediately with user's message
             _selectedConversationMessages.update { it?.plus(userMessage) }
 
             try {
-                val personality = dataStoreManager.getPersonality() // Updated to return String
-                val request = SendMessageRequest(conversationId, message, personality.toString())
+                // Retrieve the personality and selected model from DataStore
+                val personality = dataStoreManager.getPersonality().toString()
+                val selectedModel = _selectedModel.value
+
+                // Create the SendMessageRequest with the conversation ID, message, personality, and selected model
+                val request = SendMessageRequest(conversationId, message, personality, selectedModel)
+
+                // Send the message to the server
                 val response = apiService.sendMessage(request)
+
                 if (response.isSuccessful) {
+                    // If the response is successful, retrieve the assistant's message
                     val assistantMessage = response.body()?.assistantMessage
+
                     if (assistantMessage != null) {
                         // Update UI with assistant's message
                         _selectedConversationMessages.update { it?.plus(assistantMessage) }
