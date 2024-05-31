@@ -25,16 +25,16 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PersonalitySelectionScreen(navController: NavController) {
+    val context = LocalContext.current
+    val dataStoreManager = DataStoreManager(context)
+    val coroutineScope = rememberCoroutineScope()
+
     val personalityMapping = mapOf(
         "Muse" to "artistic_personality",
         "Educator" to "educational_personality",
         "Quantum" to "scientific_technological_personality",
         "Explorer" to "general_base_personality"
     )
-
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val dataStore = DataStoreManager(context)
 
     Scaffold(
         topBar = {
@@ -67,14 +67,11 @@ fun PersonalitySelectionScreen(navController: NavController) {
                     ) {
                         rowItems.forEach { personality ->
                             PersonalityButton(personality = personality) {
-                                // Save the selected personality to DataStore and show a toast
-                                scope.launch {
-                                    dataStore.savePersonality(personalityMapping[personality] ?: "")
-                                    Toast.makeText(
-                                        context,
-                                        "$personality selected",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                // Save personality and show toast
+                                coroutineScope.launch {
+                                    dataStoreManager.savePersonality(personalityMapping[personality] ?: "default_personality")
+                                    Toast.makeText(context, "$personality selected", Toast.LENGTH_SHORT).show()
+                                    // Navigate back or any other action if needed
                                 }
                             }
                         }

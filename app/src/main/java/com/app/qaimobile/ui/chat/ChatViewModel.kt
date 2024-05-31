@@ -3,15 +3,16 @@ package com.app.qaimobile.ui.chat
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.qaimobile.data.datastore.DataStoreManager
 import com.app.qaimobile.data.datastore.PreferencesKeys
 import com.app.qaimobile.data.model.network.ConversationSessionDto
 import com.app.qaimobile.data.model.network.Message
 import com.app.qaimobile.data.model.network.MessageContent
+import com.app.qaimobile.data.model.network.MessageText
 import com.app.qaimobile.data.model.network.toDto
 import com.app.qaimobile.data.model.network.toMessageList
 import com.app.qaimobile.data.remote.ApiService
 import com.app.qaimobile.data.remote.SendMessageRequest
-import com.app.qaimobile.data.remote.SendMessageResponse
 import com.app.qaimobile.util.Result
 import com.app.qaimobile.domain.repository.ConversationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,12 +22,11 @@ import javax.inject.Inject
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import com.app.qaimobile.data.model.network.MessageText
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val conversationRepository: ConversationRepository,
-    private val dataStore: DataStore<Preferences>,
+    private val dataStoreManager: DataStoreManager,
     private val apiService: ApiService
 ) : ViewModel() {
 
@@ -53,7 +53,7 @@ class ChatViewModel @Inject constructor(
             is ChatUiEvent.SelectConversation -> {
                 viewModelScope.launch {
                     refreshConversations()
-                    dataStore.edit { preferences ->
+                    dataStoreManager.dataStore.edit { preferences ->
                         preferences[PreferencesKeys.SELECTED_CONVERSATION_ID] = event.conversationId
                     }
                     Log.d("ChatViewModel", "Active Conversation ID: ${event.conversationId}")
@@ -136,7 +136,8 @@ class ChatViewModel @Inject constructor(
             _selectedConversationMessages.update { it?.plus(userMessage) }
 
             try {
-                val request = SendMessageRequest(conversationId, message)
+                val personality = dataStoreManager.getPersonality().first() ?: "default_personality"
+                val request = SendMessageRequest(conversationId, message, personality)
                 val response = apiService.sendMessage(request)
                 if (response.isSuccessful) {
                     val assistantMessage = response.body()?.assistantMessage

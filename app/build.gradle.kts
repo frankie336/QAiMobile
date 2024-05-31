@@ -72,6 +72,7 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.adapters)
     implementation(libs.androidx.compose.material)
+    implementation("androidx.compose.material:material-icons-extended:1.4.0") // Add this line
 
     // DataStore Preferences dependency
     testImplementation(libs.junit)

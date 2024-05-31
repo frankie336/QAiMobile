@@ -43,8 +43,10 @@ interface ApiService {
  */
 data class SendMessageRequest(
     val conversationId: String,
-    val message: String
+    val message: String,
+    val personality: String
 )
+
 
 /**
  * Data class representing the response from sending a message.
