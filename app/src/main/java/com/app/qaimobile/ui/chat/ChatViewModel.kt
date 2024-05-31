@@ -143,11 +143,11 @@ class ChatViewModel @Inject constructor(
             _selectedConversationMessages.update { it?.plus(userMessage) }
 
             try {
-                // Retrieve the personality and selected model from DataStore
-                val personality = dataStoreManager.getPersonality().toString()
-                val selectedModel = _selectedModel.value
+                // Retrieve the actual string values from the Flow objects
+                val personality = dataStoreManager.getPersonality().firstOrNull() ?: ""
+                val selectedModel = dataStoreManager.getSelectedModel().firstOrNull() ?: "3.5"
 
-                // Create the SendMessageRequest with the conversation ID, message, personality, and selected model
+                // Create the SendMessageRequest with the string values
                 val request = SendMessageRequest(conversationId, message, personality, selectedModel)
 
                 // Send the message to the server
