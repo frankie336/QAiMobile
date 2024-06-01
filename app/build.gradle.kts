@@ -118,6 +118,9 @@ dependencies {
 
     // for images from url
     implementation("io.coil-kt:coil-compose:2.0.0")
+
+    //Syntax highlighting
+
 }
 
 ksp {
