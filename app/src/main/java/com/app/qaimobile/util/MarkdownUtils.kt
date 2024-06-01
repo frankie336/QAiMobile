@@ -1,3 +1,4 @@
+// File: util/MarkdownUtils.kt
 package com.app.qaimobile.util
 
 import androidx.compose.ui.text.AnnotatedString
@@ -11,7 +12,12 @@ import androidx.compose.ui.graphics.Color
 
 fun parseMarkdownContent(content: String): AnnotatedString {
     return buildAnnotatedString {
-        val lines = content.split("\n")
+        // Regex to find markdown image links
+        val imageMarkdownRegex = Regex("!\\[.*?\\]\\(.*?\\)")
+        // Remove markdown image links from the content
+        val cleanedContent = content.replace(imageMarkdownRegex, "").trim()
+
+        val lines = cleanedContent.split("\n")
         for (line in lines) {
             when {
                 line.startsWith("**") -> {

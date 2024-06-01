@@ -58,21 +58,21 @@ android {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
-    implementation("androidx.datastore:datastore-preferences:1.0.0") // Ensure this line is present only once
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation("androidx.compose.material3:material3:1.1.0") // Updated to the latest stable version
+    implementation("androidx.compose.material3:material3:1.1.0")
     implementation(libs.androidx.room.common)
     implementation(libs.play.services.basement)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.adapters)
     implementation(libs.androidx.compose.material)
-    implementation("androidx.compose.material:material-icons-extended:1.4.0") // Add this line
+    implementation("androidx.compose.material:material-icons-extended:1.4.0")
 
     // DataStore Preferences dependency
     testImplementation(libs.junit)
@@ -89,7 +89,7 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
 
     // Room
-    implementation("androidx.room:room-runtime:2.5.0") // Updated to latest version
+    implementation("androidx.room:room-runtime:2.5.0")
     ksp("androidx.room:room-compiler:2.5.0")
 
     // Constraint Layout
@@ -115,6 +115,9 @@ dependencies {
     // Compose Destinations
     implementation(libs.compose.destinations.core)
     ksp(libs.compose.destinations.ksp)
+
+    // for images from url
+    implementation("io.coil-kt:coil-compose:2.0.0")
 }
 
 ksp {

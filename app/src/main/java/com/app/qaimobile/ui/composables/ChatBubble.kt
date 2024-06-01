@@ -49,12 +49,31 @@ fun ChatBubble(message: Message) {
                     color = Color.Black
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = parseMarkdownContent(message.content.firstOrNull()?.text?.value ?: ""),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Black
-                )
+                message.content.forEach { content ->
+                    val text = content.text?.value ?: ""
+                    val imageUrl = extractImageUrl(text)
+                    if (imageUrl != null) {
+                        ImageFromUrl(url = imageUrl, modifier = Modifier.fillMaxWidth().height(200.dp))
+                        Text(
+                            text = parseMarkdownContent(text.replace(imageUrl, "").trim()),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Black
+                        )
+                    } else {
+                        Text(
+                            text = parseMarkdownContent(text),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Black
+                        )
+                    }
+                }
             }
         }
     }
+}
+
+fun extractImageUrl(text: String): String? {
+    val regex = """!\[.*?\]\((.*?)\)""".toRegex()
+    val matchResult = regex.find(text)
+    return matchResult?.groups?.get(1)?.value
 }
