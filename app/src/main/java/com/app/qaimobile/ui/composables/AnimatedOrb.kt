@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun AnimatedOrb(modifier: Modifier = Modifier) {
+fun AnimatedOrb(modifier: Modifier = Modifier, runStatus: String) {
     val infiniteTransition = rememberInfiniteTransition()
 
     // Color transitions

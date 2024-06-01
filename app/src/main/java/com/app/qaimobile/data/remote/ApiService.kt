@@ -8,6 +8,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 /**
  * ApiService is an interface that defines the endpoints of the API.
@@ -36,6 +37,14 @@ interface ApiService {
      */
     @POST("bp_gpt_mobile/send_message")
     suspend fun sendMessage(@Body sendMessageRequest: SendMessageRequest): Response<SendMessageResponse>
+
+    /**
+     * This function is used to get the status of a run.
+     * @param threadId The thread ID.
+     * @return The response containing the run status.
+     */
+    @GET("/bp_gpt/api/assistant-run-status")
+    suspend fun getRunStatus(@Query("threadId") threadId: String): RunStatusResponse
 }
 
 /**
@@ -48,10 +57,16 @@ data class SendMessageRequest(
     val selectedModel: String
 )
 
-
 /**
  * Data class representing the response from sending a message.
  */
 data class SendMessageResponse(
     val assistantMessage: Message?
+)
+
+/**
+ * Data class representing the response from getting the run status.
+ */
+data class RunStatusResponse(
+    val status: String
 )

@@ -3,10 +3,8 @@ package com.app.qaimobile.ui.chat
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,6 +30,7 @@ import com.app.qaimobile.ui.composables.AnimatedOrb
 import com.app.qaimobile.ui.composables.ChatBubble
 import com.app.qaimobile.ui.composables.LoadingDialog
 import com.app.qaimobile.ui.home.ThreadsSidebar
+import com.app.qaimobile.ui.viewmodel.RunStatusViewModel
 import com.app.qaimobile.util.showToast
 import com.ramcosta.composedestinations.annotation.Destination
 import kotlinx.coroutines.flow.SharedFlow
@@ -42,6 +41,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun QComposerScreen(
     viewModel: ChatViewModel = hiltViewModel(),
+    runStatusViewModel: RunStatusViewModel = hiltViewModel(),
     uiEvent: SharedFlow<ChatUiEvent> = viewModel.uiEvent,
     navHostController: NavController,
     onEvent: (ChatUiEvent) -> Unit
@@ -75,14 +75,22 @@ fun QComposerScreen(
                     selectedThreadId = event.conversationId
                     Log.d("QComposerScreen", "Selected Conversation ID: $selectedThreadId")
                 }
-                is ChatUiEvent.SendMessage -> TODO()  // Properly handle SendMessage event
+                is ChatUiEvent.SendMessage -> {
+                    // Start fetching run status when a message is sent
+                    if (selectedThreadId != null) {
+                        runStatusViewModel.fetchRunStatus(selectedThreadId!!)
+                        Log.d("QComposerScreen", "Started fetching run status for thread: $selectedThreadId")
+                    }
+                }
             }
         }
     }
 
     LaunchedEffect(selectedMessages) {
-        if (selectedMessages != null && selectedMessages!!.isNotEmpty()) {
-            listState.animateScrollToItem(selectedMessages!!.size - 1)
+        selectedMessages?.let { messages ->
+            if (messages.isNotEmpty()) {
+                listState.animateScrollToItem(messages.size - 1)
+            }
         }
     }
 
@@ -119,7 +127,7 @@ fun QComposerScreen(
                             }
                         }
                         Spacer(modifier = Modifier.weight(1f))
-                        AnimatedOrb()
+                        AnimatedOrb(runStatus = runStatusViewModel.status.collectAsState().value)
                         Spacer(modifier = Modifier.weight(1f))
                         Text(modelMapping[selectedModel] ?: "Model")
                     }
