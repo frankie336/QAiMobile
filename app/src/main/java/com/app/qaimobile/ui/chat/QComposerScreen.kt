@@ -4,6 +4,7 @@ import com.app.qaimobile.util.Constants.DEFAULT_MODEL
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -195,9 +196,11 @@ fun QComposerScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.LightGray,
+                    containerColor = Color.White,
                     titleContentColor = Color.Black
-                )
+                ),
+                modifier = Modifier
+                    .border(BorderStroke(1.dp, Color.Gray))
             )
         }
     ) { paddingValues ->
