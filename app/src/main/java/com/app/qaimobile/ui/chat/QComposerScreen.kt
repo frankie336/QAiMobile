@@ -35,6 +35,7 @@ import com.app.qaimobile.ui.home.ThreadsSidebar
 import com.app.qaimobile.ui.viewmodel.RunStatusViewModel
 import com.app.qaimobile.util.showToast
 import com.ramcosta.composedestinations.annotation.Destination
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
@@ -59,6 +60,7 @@ fun QComposerScreen(
     var selectedThreadId by remember { mutableStateOf<String?>(null) }
     var expanded by remember { mutableStateOf(false) } // For menu expansion state
     val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
     val modelMapping = mapOf(
         "gpt-4o" to "4o",
@@ -78,11 +80,7 @@ fun QComposerScreen(
                     Log.d("QComposerScreen", "Selected Conversation ID: $selectedThreadId")
                 }
                 is ChatUiEvent.SendMessage -> {
-                    // Start fetching run status when a message is sent
-                    if (selectedThreadId != null) {
-                        runStatusViewModel.fetchRunStatus(selectedThreadId!!)
-                        Log.d("QComposerScreen", "Started fetching run status for thread: $selectedThreadId")
-                    }
+                    // This block can be used if additional logic is needed when a message is sent
                 }
             }
         }
@@ -129,7 +127,7 @@ fun QComposerScreen(
                             }
                         }
                         Spacer(modifier = Modifier.weight(1f))
-                        AnimatedOrb(runStatus = runStatusViewModel.status.collectAsState().value) // AnimatedOrb will show the run status
+                        AnimatedOrb(runStatusViewModel = runStatusViewModel) // Pass the view model to the AnimatedOrb
                         Spacer(modifier = Modifier.weight(1f))
                         Text(modelMapping[selectedModel] ?: DEFAULT_MODEL)
                     }
@@ -284,12 +282,21 @@ fun QComposerScreen(
                         onClick = {
                             if (selectedThreadId != null && message.isNotBlank()) { // Check if the message is not empty
                                 Log.d("QComposerScreen", "Sending Message: $message to $selectedThreadId")
-                                onEvent(ChatUiEvent.SendMessage(selectedThreadId!!, message))
-                                message = ""
-                                keyboardController?.hide()
-                                // This is where the run status should be triggered
-                                runStatusViewModel.fetchRunStatus(selectedThreadId!!)
-                                Log.d("QComposerScreen", "Started fetching run status for thread: $selectedThreadId")
+                                coroutineScope.launch {
+                                    onEvent(ChatUiEvent.SendMessage(selectedThreadId!!, message))
+                                    message = ""
+                                    keyboardController?.hide()
+
+                                    // Polling status endpoint until the message submission is complete
+                                    while (true) {
+                                        delay(1000) // Poll every second, adjust the delay as needed
+                                        runStatusViewModel.fetchRunStatus(selectedThreadId!!)
+                                        if (runStatusViewModel.status.value == "completed") {
+                                            Log.d("QComposerScreen", "Message processing completed for thread: $selectedThreadId")
+                                            break
+                                        }
+                                    }
+                                }
                             } else {
                                 if (selectedThreadId == null) {
                                     showToast(context, "Please select a conversation first")
