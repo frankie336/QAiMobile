@@ -1,5 +1,6 @@
 package com.app.qaimobile.ui.chat
 
+import com.app.qaimobile.util.Constants.DEFAULT_MODEL
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -52,7 +53,7 @@ fun QComposerScreen(
     val state by viewModel.state.collectAsState()
     val conversations by viewModel.conversations.collectAsState()
     val selectedMessages by viewModel.selectedConversationMessages.collectAsState()
-    val selectedModel by viewModel.selectedModel.collectAsState(initial = "4o") // Set default selection to "gpt-4o"
+    val selectedModel by viewModel.selectedModel.collectAsState(initial = DEFAULT_MODEL) // Set default selection to "gpt-4o"
     var showSidebar by remember { mutableStateOf(false) }
     var selectedThreadId by remember { mutableStateOf<String?>(null) }
     var expanded by remember { mutableStateOf(false) } // For menu expansion state
@@ -127,9 +128,9 @@ fun QComposerScreen(
                             }
                         }
                         Spacer(modifier = Modifier.weight(1f))
-                        AnimatedOrb(runStatus = runStatusViewModel.status.collectAsState().value)
+                        AnimatedOrb(runStatus = runStatusViewModel.status.collectAsState().value) // AnimatedOrb will show the run status
                         Spacer(modifier = Modifier.weight(1f))
-                        Text(modelMapping[selectedModel] ?: "4o")
+                        Text(modelMapping[selectedModel] ?: DEFAULT_MODEL)
                     }
                 },
                 navigationIcon = {
@@ -283,6 +284,9 @@ fun QComposerScreen(
                                 onEvent(ChatUiEvent.SendMessage(selectedThreadId!!, message))
                                 message = ""
                                 keyboardController?.hide()
+                                // This is where the run status should be triggered
+                                runStatusViewModel.fetchRunStatus(selectedThreadId!!)
+                                Log.d("QComposerScreen", "Started fetching run status for thread: $selectedThreadId")
                             } else {
                                 showToast(context, "Please select a conversation first")
                             }
