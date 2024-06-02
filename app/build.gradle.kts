@@ -57,57 +57,51 @@ android {
 }
 
 dependencies {
+    // Core libraries
     implementation(libs.androidx.core.ktx)
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.appcompat)
+
+    // Compose libraries
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation("androidx.compose.material3:material3:1.1.0")
-    implementation(libs.androidx.room.common)
-    implementation(libs.play.services.basement)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.androidx.room.ktx)
-    implementation(libs.androidx.adapters)
     implementation(libs.androidx.compose.material)
     implementation("androidx.compose.material:material-icons-extended:1.4.0")
-
-    // DataStore Preferences dependency
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    // Hilt Android
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
-    implementation(libs.hilt.navigation.compose)
+    // DataStore Preferences
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation(libs.datastore.preferences)
 
     // Room
     implementation("androidx.room:room-runtime:2.5.0")
+    implementation(libs.androidx.room.common)
+    implementation(libs.androidx.room.ktx)
     ksp("androidx.room:room-compiler:2.5.0")
 
-    // Constraint Layout
-    implementation(libs.constraintlayout.compose)
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
 
     // Retrofit
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.logging.interceptor)
 
+    // Constraint Layout
+    implementation(libs.constraintlayout.compose)
+
     // System UI Controller
     implementation(libs.accompanist.systemuicontroller)
 
     // Compose Lifecycle
     implementation(libs.lifecycle.runtime.compose)
-
-    // DataStore
-    implementation(libs.datastore.preferences)
 
     // Splash API
     implementation(libs.splash.screen)
@@ -116,11 +110,15 @@ dependencies {
     implementation(libs.compose.destinations.core)
     ksp(libs.compose.destinations.ksp)
 
-    // for images from url
+    // Coil for image loading
     implementation("io.coil-kt:coil-compose:2.0.0")
 
-    //Syntax highlighting
-
+    // Testing libraries
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.ui.test.junit4)
 }
 
 ksp {
