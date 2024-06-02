@@ -21,19 +21,19 @@ fun AnimatedOrb(runStatusViewModel: RunStatusViewModel) {
 
     // Colors based on status
     val color1 = when (status) {
-        "queued", "failed" -> Color(0xFFFFB3B3) // Pastel Red
-        "in_progress" -> Color(0xFFFFE0B3) // Pastel Orange
-        "completed" -> Color(0xFFB3FFB3) // Pastel Green
-        "cancelled", "expired" -> Color(0xFFD9D9D9) // Pastel Gray
-        else -> Color(0xFFFFB3B3) // Default to pastel red
+        "queued", "failed" -> Color(0xFFFF6666) // Luminous Red
+        "in_progress" -> Color(0xFFFFCC66) // Luminous Orange
+        "completed" -> Color(0xFF66FF66) // Luminous Green
+        "cancelled", "expired" -> Color(0xFFCCCCCC) // Metallic Gray
+        else -> Color(0xFFFF6666) // Default to luminous red
     }
 
     val color2 = when (status) {
-        "queued", "failed" -> Color(0xFFFFE0B3) // Pastel Orange
-        "in_progress" -> Color(0xFFB3FFB3) // Pastel Green
-        "completed" -> Color(0xFFD9D9D9) // Pastel Gray
-        "cancelled", "expired" -> Color(0xFFFFB3B3) // Pastel Red
-        else -> Color(0xFFFFE0B3) // Default to pastel orange
+        "queued", "failed" -> Color(0xFFFFCC66) // Luminous Orange
+        "in_progress" -> Color(0xFF66FF66) // Luminous Green
+        "completed" -> Color(0xFFCCCCCC) // Metallic Gray
+        "cancelled", "expired" -> Color(0xFFFF6666) // Luminous Red
+        else -> Color(0xFFFFCC66) // Default to luminous orange
     }
 
     // Determine the colors based on the status

@@ -291,7 +291,7 @@ fun QComposerScreen(
                                     while (true) {
                                         delay(1000) // Poll every second, adjust the delay as needed
                                         runStatusViewModel.fetchRunStatus(selectedThreadId!!)
-                                        if (runStatusViewModel.status.value == "completed") {
+                                        if (runStatusViewModel.status.value in listOf("completed", "failed", "cancelled", "expired")) {
                                             Log.d("QComposerScreen", "Message processing completed for thread: $selectedThreadId")
                                             break
                                         }
