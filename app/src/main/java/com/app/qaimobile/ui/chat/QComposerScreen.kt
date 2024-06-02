@@ -282,7 +282,7 @@ fun QComposerScreen(
 
                     IconButton(
                         onClick = {
-                            if (selectedThreadId != null) {
+                            if (selectedThreadId != null && message.isNotBlank()) { // Check if the message is not empty
                                 Log.d("QComposerScreen", "Sending Message: $message to $selectedThreadId")
                                 onEvent(ChatUiEvent.SendMessage(selectedThreadId!!, message))
                                 message = ""
@@ -291,7 +291,9 @@ fun QComposerScreen(
                                 runStatusViewModel.fetchRunStatus(selectedThreadId!!)
                                 Log.d("QComposerScreen", "Started fetching run status for thread: $selectedThreadId")
                             } else {
-                                showToast(context, "Please select a conversation first")
+                                if (selectedThreadId == null) {
+                                    showToast(context, "Please select a conversation first")
+                                }
                             }
                         },
                         modifier = Modifier

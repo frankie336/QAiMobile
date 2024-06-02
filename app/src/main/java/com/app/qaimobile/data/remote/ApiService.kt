@@ -43,7 +43,7 @@ interface ApiService {
      * @param threadId The thread ID.
      * @return The response containing the run status.
      */
-    @GET("/bp_gpt/api/assistant-run-status")
+    @GET("/bp_gpt_mobile/api/assistant-run-status")
     suspend fun getRunStatus(@Query("threadId") threadId: String): RunStatusResponse
 }
 
