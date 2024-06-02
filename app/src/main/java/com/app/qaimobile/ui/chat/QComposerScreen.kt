@@ -129,7 +129,7 @@ fun QComposerScreen(
                         Spacer(modifier = Modifier.weight(1f))
                         AnimatedOrb(runStatus = runStatusViewModel.status.collectAsState().value)
                         Spacer(modifier = Modifier.weight(1f))
-                        Text(modelMapping[selectedModel] ?: "Model")
+                        Text(modelMapping[selectedModel] ?: "4o")
                     }
                 },
                 navigationIcon = {
