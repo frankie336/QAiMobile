@@ -196,6 +196,23 @@ class ChatViewModel @Inject constructor(
         }
     }
 
+    fun createSession() {
+        viewModelScope.launch {
+            try {
+                val response = apiService.createSession()
+                if (response.isSuccessful) {
+                    val userId = response.body()?.user_id
+                    Log.d("ChatViewModel", "Session created successfully for User ID: $userId")
+                    // Handle the response as needed, e.g., updating the UI
+                } else {
+                    _uiEvent.emit(ChatUiEvent.ShowError("Failed to create session: ${response.message()}"))
+                }
+            } catch (e: Exception) {
+                _uiEvent.emit(ChatUiEvent.ShowError("Error: ${e.localizedMessage}"))
+            }
+        }
+    }
+
     init {
         viewModelScope.launch {
             // Retrieve the selected model from DataStore

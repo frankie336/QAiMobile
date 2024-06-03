@@ -45,6 +45,13 @@ interface ApiService {
      */
     @GET("/bp_gpt_mobile/api/assistant-run-status")
     suspend fun getRunStatus(@Query("threadId") threadId: String): RunStatusResponse
+
+    /**
+     * This function is used to create a new session.
+     * @return The response containing the user ID.
+     */
+    @POST("bp_common/session-create")
+    suspend fun createSession(): Response<CreateSessionResponse>
 }
 
 /**
@@ -69,4 +76,11 @@ data class SendMessageResponse(
  */
 data class RunStatusResponse(
     val status: String
+)
+
+/**
+ * Data class representing the response from creating a session.
+ */
+data class CreateSessionResponse(
+    val user_id: String
 )

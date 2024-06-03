@@ -58,7 +58,6 @@ fun QComposerScreen(
     val selectedMessages by viewModel.selectedConversationMessages.collectAsState()
     val selectedModel by viewModel.selectedModel.collectAsState(initial = DEFAULT_MODEL)
     var showSidebar by remember { mutableStateOf(false) }
-    var selectedThreadId by remember { mutableStateOf<String?>(null) }
     var expanded by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -68,6 +67,8 @@ fun QComposerScreen(
         "gpt-4-turbo-2024-04-09" to "4",
         "gpt-3.5-turbo" to "3.5"
     )
+
+    var selectedThreadId by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.fetchConversations()
@@ -133,59 +134,62 @@ fun QComposerScreen(
                     }
                 },
                 actions = {
-                    Box {
+                    Row {
+                        IconButton(onClick = { viewModel.createSession() }) {
+                            Icon(Icons.Default.Add, contentDescription = "Create Session", tint = Color.Gray)
+                        }
                         IconButton(onClick = { expanded = !expanded }) {
                             Icon(Icons.Default.MoreVert, contentDescription = "Menu", tint = Color.Gray)
                         }
-                        DropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false },
-                            offset = DpOffset((-160).dp, (-16).dp)
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("Files", color = Color.Gray) },
-                                onClick = {
-                                    expanded = false
-                                    Log.d("QComposerScreen", "Files clicked")
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Settings", color = Color.Gray) },
-                                onClick = {
-                                    expanded = false
-                                    Log.d("QComposerScreen", "Settings clicked")
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Models", color = Color.Gray) },
-                                onClick = {
-                                    expanded = false
-                                    Log.d("QComposerScreen", "Models clicked")
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Profile", color = Color.Gray) },
-                                onClick = {
-                                    expanded = false
-                                    Log.d("QComposerScreen", "Profile clicked")
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Select Personality", color = Color.Gray) },
-                                onClick = {
-                                    expanded = false
-                                    navHostController.navigate(Destinations.PERSONALITY_SELECTION_ROUTE)
-                                    Log.d("QComposerScreen", "Select Personality clicked")
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Logout", color = Color.Gray) },
-                                onClick = {
-                                    expanded = false
-                                    Log.d("QComposerScreen", "Logout clicked")
-                                }
-                            )
-                        }
+                    }
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                        offset = DpOffset((-160).dp, (-16).dp)
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Files", color = Color.Gray) },
+                            onClick = {
+                                expanded = false
+                                Log.d("QComposerScreen", "Files clicked")
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Settings", color = Color.Gray) },
+                            onClick = {
+                                expanded = false
+                                Log.d("QComposerScreen", "Settings clicked")
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Models", color = Color.Gray) },
+                            onClick = {
+                                expanded = false
+                                Log.d("QComposerScreen", "Models clicked")
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Profile", color = Color.Gray) },
+                            onClick = {
+                                expanded = false
+                                Log.d("QComposerScreen", "Profile clicked")
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Select Personality", color = Color.Gray) },
+                            onClick = {
+                                expanded = false
+                                navHostController.navigate(Destinations.PERSONALITY_SELECTION_ROUTE)
+                                Log.d("QComposerScreen", "Select Personality clicked")
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Logout", color = Color.Gray) },
+                            onClick = {
+                                expanded = false
+                                Log.d("QComposerScreen", "Logout clicked")
+                            }
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
