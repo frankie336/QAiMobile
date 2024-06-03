@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -55,10 +56,10 @@ fun QComposerScreen(
     val state by viewModel.state.collectAsState()
     val conversations by viewModel.conversations.collectAsState()
     val selectedMessages by viewModel.selectedConversationMessages.collectAsState()
-    val selectedModel by viewModel.selectedModel.collectAsState(initial = DEFAULT_MODEL) // Set default selection to "gpt-4o"
+    val selectedModel by viewModel.selectedModel.collectAsState(initial = DEFAULT_MODEL)
     var showSidebar by remember { mutableStateOf(false) }
     var selectedThreadId by remember { mutableStateOf<String?>(null) }
-    var expanded by remember { mutableStateOf(false) } // For menu expansion state
+    var expanded by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -79,9 +80,7 @@ fun QComposerScreen(
                     selectedThreadId = event.conversationId
                     Log.d("QComposerScreen", "Selected Conversation ID: $selectedThreadId")
                 }
-                is ChatUiEvent.SendMessage -> {
-                    // This block can be used if additional logic is needed when a message is sent
-                }
+                is ChatUiEvent.SendMessage -> {}
             }
         }
     }
@@ -104,14 +103,11 @@ fun QComposerScreen(
                 title = {
                     var modelDropdownExpanded by remember { mutableStateOf(false) }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(
-                            onClick = { modelDropdownExpanded = !modelDropdownExpanded }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Assistant,
-                                contentDescription = "Model Icon"
-                            )
-                        }
+                        Text(
+                            text = modelMapping[selectedModel] ?: DEFAULT_MODEL,
+                            modifier = Modifier.clickable { modelDropdownExpanded = !modelDropdownExpanded },
+                            color = Color.Gray
+                        )
                         DropdownMenu(
                             expanded = modelDropdownExpanded,
                             onDismissRequest = { modelDropdownExpanded = false }
@@ -127,20 +123,19 @@ fun QComposerScreen(
                             }
                         }
                         Spacer(modifier = Modifier.weight(1f))
-                        AnimatedOrb(runStatusViewModel = runStatusViewModel) // Pass the view model to the AnimatedOrb
+                        AnimatedOrb(runStatusViewModel = runStatusViewModel)
                         Spacer(modifier = Modifier.weight(1f))
-                        Text(modelMapping[selectedModel] ?: DEFAULT_MODEL)
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = { showSidebar = !showSidebar }) {
-                        Icon(Icons.Default.Menu, contentDescription = "Toggle Sidebar")
+                        Icon(Icons.Default.Menu, contentDescription = "Toggle Sidebar", tint = Color.Gray)
                     }
                 },
                 actions = {
                     Box {
                         IconButton(onClick = { expanded = !expanded }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "Menu")
+                            Icon(Icons.Default.MoreVert, contentDescription = "Menu", tint = Color.Gray)
                         }
                         DropdownMenu(
                             expanded = expanded,
@@ -148,35 +143,35 @@ fun QComposerScreen(
                             offset = DpOffset((-160).dp, (-16).dp)
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Files") },
+                                text = { Text("Files", color = Color.Gray) },
                                 onClick = {
                                     expanded = false
                                     Log.d("QComposerScreen", "Files clicked")
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Settings") },
+                                text = { Text("Settings", color = Color.Gray) },
                                 onClick = {
                                     expanded = false
                                     Log.d("QComposerScreen", "Settings clicked")
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Models") },
+                                text = { Text("Models", color = Color.Gray) },
                                 onClick = {
                                     expanded = false
                                     Log.d("QComposerScreen", "Models clicked")
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Profile") },
+                                text = { Text("Profile", color = Color.Gray) },
                                 onClick = {
                                     expanded = false
                                     Log.d("QComposerScreen", "Profile clicked")
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Select Personality") },
+                                text = { Text("Select Personality", color = Color.Gray) },
                                 onClick = {
                                     expanded = false
                                     navHostController.navigate(Destinations.PERSONALITY_SELECTION_ROUTE)
@@ -184,7 +179,7 @@ fun QComposerScreen(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Logout") },
+                                text = { Text("Logout", color = Color.Gray) },
                                 onClick = {
                                     expanded = false
                                     Log.d("QComposerScreen", "Logout clicked")
@@ -195,10 +190,8 @@ fun QComposerScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.White,
-                    titleContentColor = Color.Black
-                ),
-                modifier = Modifier
-                    .border(BorderStroke(1.dp, Color.Gray))
+                    titleContentColor = Color.Gray
+                )
             )
         }
     ) { paddingValues ->
@@ -243,7 +236,7 @@ fun QComposerScreen(
                             .fillMaxHeight()
                             .width(200.dp)
                             .background(color = MaterialTheme.colorScheme.surface)
-                            .border(width = 1.dp, color = Color.LightGray) // Adding light grey border
+                            .border(width = 1.dp, color = Color.LightGray)
                     )
                 }
             }
@@ -283,16 +276,15 @@ fun QComposerScreen(
 
                     IconButton(
                         onClick = {
-                            if (message.isNotBlank()) { // Allow sending message without selectedThreadId
+                            if (message.isNotBlank()) {
                                 Log.d("QComposerScreen", "Sending Message: $message to ${selectedThreadId ?: "new conversation"}")
                                 coroutineScope.launch {
                                     onEvent(ChatUiEvent.SendMessage(selectedThreadId ?: "", message))
                                     message = ""
                                     keyboardController?.hide()
 
-                                    // Polling status endpoint until the message submission is complete
                                     while (true) {
-                                        delay(1000) // Poll every second, adjust the delay as needed
+                                        delay(1000)
                                         runStatusViewModel.fetchRunStatus(selectedThreadId ?: "")
                                         if (runStatusViewModel.status.value == "completed") {
                                             Log.d("QComposerScreen", "Message processing completed for thread: $selectedThreadId")
