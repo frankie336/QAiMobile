@@ -1,5 +1,6 @@
 package com.app.qaimobile.di
 
+import com.app.qaimobile.util.Constants.BASE_URL
 import com.app.qaimobile.data.remote.AuthInterceptor
 import com.app.qaimobile.util.Constants
 import dagger.Module
@@ -22,7 +23,7 @@ object NetworkModule {
      * Provides base URL for the Retrofit instance.
      */
     @Provides
-    fun provideBaseUrl(): String = "http://10.0.2.2:5000/" // Base URL set to your development server
+    fun provideBaseUrl(): String = BASE_URL // Base URL set to your development server
 
     @Singleton
     @Provides

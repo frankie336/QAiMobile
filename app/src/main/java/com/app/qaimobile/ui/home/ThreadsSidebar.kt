@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.app.qaimobile.data.local.ConversationSession
 import com.app.qaimobile.ui.composables.ThreadItem
 
@@ -27,6 +28,7 @@ fun ThreadsSidebar(
             .width(200.dp)
             .background(color = MaterialTheme.colorScheme.surface)
             .border(width = 1.dp, color = Color.LightGray)  // Adding light grey border
+            .zIndex(1f) // Ensure sidebar has higher z-index
     ) {
         items(conversations) { conversation ->
             ThreadItem(

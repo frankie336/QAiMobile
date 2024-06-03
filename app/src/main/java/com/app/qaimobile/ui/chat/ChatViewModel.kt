@@ -111,8 +111,10 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    private fun sendMessage(conversationId: String, message: String) {
+    private fun sendMessage(conversationId: String?, message: String) {
         viewModelScope.launch {
+            val finalConversationId = conversationId ?: generateId()
+
             // Create a new user message object
             val userMessage = Message(
                 id = generateId(),
@@ -136,7 +138,7 @@ class ChatViewModel @Inject constructor(
                 role = "user",
                 runId = null,
                 status = null,
-                threadId = conversationId
+                threadId = finalConversationId
             )
 
             // Update UI immediately with user's message
@@ -148,7 +150,7 @@ class ChatViewModel @Inject constructor(
                 val selectedModel = dataStoreManager.getSelectedModel().firstOrNull() ?: "3.5"
 
                 // Create the SendMessageRequest with the string values
-                val request = SendMessageRequest(conversationId, message, personality, selectedModel)
+                val request = SendMessageRequest(finalConversationId, message, personality, selectedModel)
 
                 // Send the message to the server
                 val response = apiService.sendMessage(request)
@@ -162,6 +164,13 @@ class ChatViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 _uiEvent.emit(ChatUiEvent.ShowError("Error: ${e.localizedMessage}"))
+            }
+
+            // Store the new conversation ID if it was newly created
+            if (conversationId == null) {
+                dataStoreManager.dataStore.edit { preferences ->
+                    preferences[PreferencesKeys.SELECTED_CONVERSATION_ID] = finalConversationId
+                }
             }
         }
     }

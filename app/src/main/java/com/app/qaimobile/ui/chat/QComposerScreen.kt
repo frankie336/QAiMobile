@@ -209,39 +209,42 @@ fun QComposerScreen(
         ) {
             val (sidebar, content, row) = createRefs()
 
-            if (showSidebar) {
-                ThreadsSidebar(
-                    conversations = conversations.map { it.toEntity() },
-                    onThreadClick = { sessionId ->
-                        showSidebar = false
-                        onEvent(ChatUiEvent.SelectConversation(sessionId))
-                        selectedThreadId = sessionId
-                        Log.d("QComposerScreen", "Thread Clicked: $selectedThreadId")
-                    },
-                    modifier = Modifier.constrainAs(sidebar) {
-                        top.linkTo(parent.top)
-                        start.linkTo(parent.start)
-                        bottom.linkTo(row.top)
-                        height = Dimension.fillToConstraints
-                    }
-                )
-            }
-
-            LazyColumn(
-                state = listState,
+            Box(
                 modifier = Modifier
                     .constrainAs(content) {
                         top.linkTo(parent.top)
-                        start.linkTo(parent.start, if (showSidebar) 200.dp else 0.dp)
+                        start.linkTo(parent.start)
                         end.linkTo(parent.end)
                         bottom.linkTo(row.top)
                         height = Dimension.fillToConstraints
                     }
             ) {
-                selectedMessages?.let { messages ->
-                    items(messages.size) { index ->
-                        ChatBubble(messages[index])
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    selectedMessages?.let { messages ->
+                        items(messages.size) { index ->
+                            ChatBubble(messages[index])
+                        }
                     }
+                }
+
+                if (showSidebar) {
+                    ThreadsSidebar(
+                        conversations = conversations.map { it.toEntity() },
+                        onThreadClick = { sessionId ->
+                            showSidebar = false
+                            onEvent(ChatUiEvent.SelectConversation(sessionId))
+                            selectedThreadId = sessionId
+                            Log.d("QComposerScreen", "Thread Clicked: $selectedThreadId")
+                        },
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(200.dp)
+                            .background(color = MaterialTheme.colorScheme.surface)
+                            .border(width = 1.dp, color = Color.LightGray) // Adding light grey border
+                    )
                 }
             }
 
@@ -280,27 +283,25 @@ fun QComposerScreen(
 
                     IconButton(
                         onClick = {
-                            if (selectedThreadId != null && message.isNotBlank()) { // Check if the message is not empty
-                                Log.d("QComposerScreen", "Sending Message: $message to $selectedThreadId")
+                            if (message.isNotBlank()) { // Allow sending message without selectedThreadId
+                                Log.d("QComposerScreen", "Sending Message: $message to ${selectedThreadId ?: "new conversation"}")
                                 coroutineScope.launch {
-                                    onEvent(ChatUiEvent.SendMessage(selectedThreadId!!, message))
+                                    onEvent(ChatUiEvent.SendMessage(selectedThreadId ?: "", message))
                                     message = ""
                                     keyboardController?.hide()
 
                                     // Polling status endpoint until the message submission is complete
                                     while (true) {
                                         delay(1000) // Poll every second, adjust the delay as needed
-                                        runStatusViewModel.fetchRunStatus(selectedThreadId!!)
-                                        if (runStatusViewModel.status.value in listOf("completed", "failed", "cancelled", "expired")) {
+                                        runStatusViewModel.fetchRunStatus(selectedThreadId ?: "")
+                                        if (runStatusViewModel.status.value == "completed") {
                                             Log.d("QComposerScreen", "Message processing completed for thread: $selectedThreadId")
                                             break
                                         }
                                     }
                                 }
                             } else {
-                                if (selectedThreadId == null) {
-                                    showToast(context, "Please select a conversation first")
-                                }
+                                showToast(context, "Please enter a message")
                             }
                         },
                         modifier = Modifier

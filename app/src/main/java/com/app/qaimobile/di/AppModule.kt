@@ -1,6 +1,7 @@
 // com/app/qaimobile/di/AppModule.kt
 package com.app.qaimobile.di
 
+import com.app.qaimobile.util.Constants.BASE_URL
 import android.content.Context
 import com.app.qaimobile.data.remote.ApiService
 import com.google.gson.Gson
@@ -32,7 +33,7 @@ object AppModule {
     fun provideRetrofit(client: OkHttpClient, gson: Gson): Retrofit {
         return Retrofit.Builder()
             .client(client)
-            .baseUrl("http://10.0.2.2:5000/") // Emulator's way to access host's localhost
+            .baseUrl(BASE_URL) // Emulator's way to access host's localhost
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
     }
