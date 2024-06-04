@@ -55,15 +55,17 @@ class ChatViewModel @Inject constructor(
             }
             is ChatUiEvent.SelectConversation -> {
                 viewModelScope.launch {
+                    Log.d("ChatViewModel", "SelectConversation event received: ${event.conversationId}")
                     refreshConversations()
                     dataStoreManager.dataStore.edit { preferences ->
                         preferences[PreferencesKeys.SELECTED_CONVERSATION_ID] = event.conversationId
                     }
-                    Log.d("ChatViewModel", "Active Conversation ID: ${event.conversationId}")
+                    Log.d("ChatViewModel", "Active Conversation ID set: ${event.conversationId}")
                     selectConversation(event.conversationId)
                 }
             }
             is ChatUiEvent.SendMessage -> {
+                Log.d("ChatViewModel", "SendMessage event received: ${event.message}")
                 sendMessage(event.conversationId, event.message)
             }
             is ChatUiEvent.Success -> {
@@ -84,11 +86,13 @@ class ChatViewModel @Inject constructor(
                             _conversations.value = conversationDtos
                             _uiEvent.emit(ChatUiEvent.ConversationsLoaded(conversationDtos))
                             _state.value = ChatState(isLoading = false)
+                            Log.d("ChatViewModel", "Conversations fetched and loaded: ${_conversations.value}")
                         }
                     }
                     is Result.Error -> {
                         _uiEvent.emit(ChatUiEvent.ShowError("Failed to load conversations: ${result.exception.localizedMessage}"))
                         _state.value = ChatState(isLoading = false)
+                        Log.e("ChatViewModel", "Error loading conversations: ${result.exception}")
                     }
                     is Result.Loading -> {
                         // Handle loading state if needed
@@ -97,6 +101,7 @@ class ChatViewModel @Inject constructor(
             } catch (e: Exception) {
                 _uiEvent.emit(ChatUiEvent.ShowError("Error: ${e.localizedMessage}"))
                 _state.value = ChatState(isLoading = false)
+                Log.e("ChatViewModel", "Exception loading conversations: ${e.localizedMessage}")
             }
         }
     }
@@ -104,9 +109,14 @@ class ChatViewModel @Inject constructor(
     private fun selectConversation(sessionId: String) {
         viewModelScope.launch {
             conversationRepository.getConversationSessionById(sessionId).collect { session ->
-                Log.d("ChatViewModel", "Selected conversation with threadId: ${session.threadId}")
-                val messages = session.messages.toMessageList().sortedBy { it.createdAt }
-                _selectedConversationMessages.value = messages
+                if (session != null) { // Check if session is not null
+                    Log.d("ChatViewModel", "Selected conversation with threadId: ${session.threadId}")
+                    val messages = session.messages.toMessageList().sortedBy { it.createdAt }
+                    _selectedConversationMessages.value = messages
+                } else {
+                    Log.d("ChatViewModel", "Conversation session is null for sessionId: $sessionId")
+                    _selectedConversationMessages.value = emptyList()
+                }
             }
         }
     }
@@ -162,24 +172,23 @@ class ChatViewModel @Inject constructor(
                         val receivedThreadId = responseBody.threadId
 
                         if (!receivedConversationId.isNullOrEmpty() && !receivedThreadId.isNullOrEmpty()) {
-                            // Special logic for handling the received conversation_id and thread_id
                             Log.d("ChatViewModel", "Received conversation_id: $receivedConversationId, thread_id: $receivedThreadId")
-                            // Perform any necessary actions or update the UI accordingly
-                            // For example, you can store the received conversation_id and thread_id in DataStore
                             dataStoreManager.dataStore.edit { preferences ->
                                 preferences[PreferencesKeys.SELECTED_CONVERSATION_ID] = receivedConversationId
-                                //preferences[PreferencesKeys.SELECTED_THREAD_ID] = receivedThreadId
                             }
+
+                            // Emit a SelectConversation event with the received conversation ID
+                            _uiEvent.emit(ChatUiEvent.SelectConversation(receivedConversationId))
+
+                            // Update selectedConversationMessages with the response
+                            selectConversation(receivedConversationId)
                         } else {
-                            // Handle the case when conversation_id or thread_id is null or empty
                             Log.d("ChatViewModel", "Conversation ID or Thread ID is null or empty")
                         }
 
-                        // Trigger a local database refresh
                         refreshConversations()
                         _uiEvent.emit(ChatUiEvent.Success)
                     } else {
-                        // Handle the case when the response body is null
                         Log.d("ChatViewModel", "Response body is null")
                     }
                 } else {
@@ -189,7 +198,6 @@ class ChatViewModel @Inject constructor(
                 _uiEvent.emit(ChatUiEvent.ShowError("Error: ${e.localizedMessage}"))
             }
 
-            // Store the new conversation ID if it was newly created
             if (conversationId == null) {
                 dataStoreManager.dataStore.edit { preferences ->
                     preferences[PreferencesKeys.SELECTED_CONVERSATION_ID] = finalConversationId
@@ -199,12 +207,15 @@ class ChatViewModel @Inject constructor(
         }
     }
 
+
     private fun refreshConversations() {
         viewModelScope.launch {
             try {
                 conversationRepository.refreshConversations("userId") // Pass the userId as needed
+                Log.d("ChatViewModel", "Conversations refreshed")
             } catch (e: Exception) {
                 _uiEvent.emit(ChatUiEvent.ShowError("Error: ${e.localizedMessage}"))
+                Log.e("ChatViewModel", "Error refreshing conversations: ${e.localizedMessage}")
             }
         }
     }

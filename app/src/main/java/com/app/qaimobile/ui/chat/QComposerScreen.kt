@@ -90,6 +90,7 @@ fun QComposerScreen(
         selectedMessages?.let { messages ->
             if (messages.isNotEmpty()) {
                 listState.animateScrollToItem(messages.size - 1)
+                Log.d("QComposerScreen", "Messages updated: $messages")
             }
         }
     }

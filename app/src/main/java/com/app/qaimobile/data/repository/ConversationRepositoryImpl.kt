@@ -28,13 +28,13 @@ class ConversationRepositoryImpl @Inject constructor(
         val response = apiService.getConversations()
         if (response.isSuccessful) {
             response.body()?.let { conversationsFromApi ->
-                val conversationEntities = conversationsFromApi.map { dto ->
+                val conversationEntities = conversationsFromApi.mapNotNull { dto ->
                     Log.d("ConversationRepository", "Received conversation: $dto")
                     dto.messages?.let {
                         ConversationSession(
                             id = dto.id,
                             threadId = dto.threadId,
-                            userId = dto.userId ?: userId, // Use the provided userId if the dto.userId is null
+                            userId = dto.userId ?: userId,
                             thread = dto.thread,
                             summary = dto.summary,
                             messages = it,
@@ -52,7 +52,7 @@ class ConversationRepositoryImpl @Inject constructor(
 
     override suspend fun syncConversations(): Result<Unit> {
         return try {
-            val userId = getUserId() // Implement a method to obtain the user ID from some source (e.g., data store or session manager)
+            val userId = getUserId()
             if (userId.isNullOrEmpty()) {
                 throw IllegalArgumentException("UserId cannot be null or empty")
             }
