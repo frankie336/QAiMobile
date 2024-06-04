@@ -15,7 +15,7 @@ interface ConversationSessionDao {
     suspend fun insert(conversationSession: ConversationSession)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(conversationSessions: List<ConversationSession>)
+    suspend fun insertAll(conversationSessions: kotlin.collections.List<com.app.qaimobile.data.local.ConversationSession?>)
 
     @Query("SELECT * FROM ${LocalDatabaseContract.ConversationSessionEntry.TABLE_NAME}")
     fun getAllConversationSessions(): Flow<List<ConversationSession>>

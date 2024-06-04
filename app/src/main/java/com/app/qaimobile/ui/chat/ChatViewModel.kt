@@ -156,9 +156,32 @@ class ChatViewModel @Inject constructor(
                 val response = apiService.sendMessage(request)
 
                 if (response.isSuccessful) {
-                    // If the response is successful, trigger a local database refresh
-                    refreshConversations()
-                    _uiEvent.emit(ChatUiEvent.Success)
+                    val responseBody = response.body()
+                    if (responseBody != null) {
+                        val receivedConversationId = responseBody.conversationId
+                        val receivedThreadId = responseBody.threadId
+
+                        if (!receivedConversationId.isNullOrEmpty() && !receivedThreadId.isNullOrEmpty()) {
+                            // Special logic for handling the received conversation_id and thread_id
+                            Log.d("ChatViewModel", "Received conversation_id: $receivedConversationId, thread_id: $receivedThreadId")
+                            // Perform any necessary actions or update the UI accordingly
+                            // For example, you can store the received conversation_id and thread_id in DataStore
+                            dataStoreManager.dataStore.edit { preferences ->
+                                preferences[PreferencesKeys.SELECTED_CONVERSATION_ID] = receivedConversationId
+                                //preferences[PreferencesKeys.SELECTED_THREAD_ID] = receivedThreadId
+                            }
+                        } else {
+                            // Handle the case when conversation_id or thread_id is null or empty
+                            Log.d("ChatViewModel", "Conversation ID or Thread ID is null or empty")
+                        }
+
+                        // Trigger a local database refresh
+                        refreshConversations()
+                        _uiEvent.emit(ChatUiEvent.Success)
+                    } else {
+                        // Handle the case when the response body is null
+                        Log.d("ChatViewModel", "Response body is null")
+                    }
                 } else {
                     _uiEvent.emit(ChatUiEvent.ShowError("Failed to send message: ${response.message()}"))
                 }
@@ -170,6 +193,7 @@ class ChatViewModel @Inject constructor(
             if (conversationId == null) {
                 dataStoreManager.dataStore.edit { preferences ->
                     preferences[PreferencesKeys.SELECTED_CONVERSATION_ID] = finalConversationId
+                    Log.d("ChatViewModel", "Conversation ID or Thread ID is null or empty")
                 }
             }
         }

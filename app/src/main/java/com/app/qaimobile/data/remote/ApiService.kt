@@ -4,6 +4,7 @@ import com.app.qaimobile.data.model.network.ConversationSessionDto
 import com.app.qaimobile.data.model.network.auth.LoginRequest
 import com.app.qaimobile.data.model.network.auth.LoginResponse
 import com.app.qaimobile.data.model.network.Message
+import com.google.gson.annotations.SerializedName
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -68,7 +69,10 @@ data class SendMessageRequest(
  * Data class representing the response from sending a message.
  */
 data class SendMessageResponse(
-    val assistantMessage: Message?
+    @SerializedName("conversation_id")
+    val conversationId: String,
+    @SerializedName("thread_id")
+    val threadId: String
 )
 
 /**

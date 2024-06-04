@@ -8,7 +8,7 @@ data class ConversationSessionDto(
     val userId: String,
     val thread: String?,
     val summary: String?,
-    val messages: String,
+    val messages: String?,
     val appDesignation: String?
 )
 
@@ -19,7 +19,7 @@ fun ConversationSessionDto.toEntity(): ConversationSession {
         userId = userId,
         thread = thread,
         summary = summary,
-        messages = messages,
+        messages = messages ?: "[]",
         appDesignation = appDesignation
     )
 }
