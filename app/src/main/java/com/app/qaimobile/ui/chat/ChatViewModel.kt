@@ -1,8 +1,6 @@
 package com.app.qaimobile.ui.chat
 
 import android.util.Log
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -207,7 +205,6 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-
     private fun refreshConversations() {
         viewModelScope.launch {
             try {
@@ -233,18 +230,12 @@ class ChatViewModel @Inject constructor(
 
     fun createSession() {
         viewModelScope.launch {
-            try {
-                val response = apiService.createSession()
-                if (response.isSuccessful) {
-                    val userId = response.body()?.user_id
-                    Log.d("ChatViewModel", "Session created successfully for User ID: $userId")
-                    // Handle the response as needed, e.g., updating the UI
-                } else {
-                    _uiEvent.emit(ChatUiEvent.ShowError("Failed to create session: ${response.message()}"))
-                }
-            } catch (e: Exception) {
-                _uiEvent.emit(ChatUiEvent.ShowError("Error: ${e.localizedMessage}"))
+            dataStoreManager.dataStore.edit { preferences ->
+                preferences.remove(PreferencesKeys.SELECTED_CONVERSATION_ID)
             }
+            _selectedConversationMessages.value = emptyList()
+            _uiEvent.emit(ChatUiEvent.Success)
+            Log.d("ChatViewModel", "New session created, conversation ID cleared")
         }
     }
 

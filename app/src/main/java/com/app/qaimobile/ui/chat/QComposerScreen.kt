@@ -136,7 +136,10 @@ fun QComposerScreen(
                 },
                 actions = {
                     Row {
-                        IconButton(onClick = { viewModel.createSession() }) {
+                        IconButton(onClick = {
+                            viewModel.createSession()
+                            selectedThreadId = null
+                        }) {
                             Icon(Icons.Default.Add, contentDescription = "Create Session", tint = Color.Gray)
                         }
                         IconButton(onClick = { expanded = !expanded }) {
