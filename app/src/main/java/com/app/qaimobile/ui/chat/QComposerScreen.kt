@@ -8,6 +8,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -99,213 +100,249 @@ fun QComposerScreen(
         LoadingDialog()
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    var modelDropdownExpanded by remember { mutableStateOf(false) }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = modelMapping[selectedModel] ?: DEFAULT_MODEL,
-                            modifier = Modifier.clickable { modelDropdownExpanded = !modelDropdownExpanded },
-                            color = Color.Gray
-                        )
-                        DropdownMenu(
-                            expanded = modelDropdownExpanded,
-                            onDismissRequest = { modelDropdownExpanded = false }
-                        ) {
-                            modelMapping.keys.forEach { key ->
-                                DropdownMenuItem(
-                                    text = { Text(modelMapping[key] ?: key) },
-                                    onClick = {
-                                        viewModel.saveSelectedModel(key)
-                                        modelDropdownExpanded = false
-                                    }
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.weight(1f))
-                        AnimatedOrb(runStatusViewModel = runStatusViewModel)
-                        Spacer(modifier = Modifier.weight(1f))
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = { showSidebar = !showSidebar }) {
-                        Icon(Icons.Default.Menu, contentDescription = "Toggle Sidebar", tint = Color.Gray)
-                    }
-                },
-                actions = {
-                    Row {
-                        IconButton(onClick = {
-                            viewModel.createSession()
-                            selectedThreadId = null
-                        }) {
-                            Icon(Icons.Default.Add, contentDescription = "Create Session", tint = Color.Gray)
-                        }
-                        IconButton(onClick = { expanded = !expanded }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "Menu", tint = Color.Gray)
-                        }
-                    }
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
-                        offset = DpOffset((-160).dp, (-16).dp)
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Files", color = Color.Gray) },
-                            onClick = {
-                                expanded = false
-                                Log.d("QComposerScreen", "Files clicked")
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Settings", color = Color.Gray) },
-                            onClick = {
-                                expanded = false
-                                Log.d("QComposerScreen", "Settings clicked")
-                            }
-                        )
+    BoxWithConstraints {
+        val isLandscape = maxWidth > maxHeight
 
-
-                        DropdownMenuItem(
-                            text = { Text("Profile", color = Color.Gray) },
-                            onClick = {
-                                expanded = false
-                                Log.d("QComposerScreen", "Profile clicked")
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Personality", color = Color.Gray) },
-                            onClick = {
-                                expanded = false
-                                navHostController.navigate(Destinations.PERSONALITY_SELECTION_ROUTE)
-                                Log.d("QComposerScreen", "Select Personality clicked")
-                            }
-                        )
-
-
-
-
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color.Gray
-                )
-            )
-        }
-    ) { paddingValues ->
-        ConstraintLayout(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            val (sidebar, content, row) = createRefs()
-
-            Box(
-                modifier = Modifier
-                    .constrainAs(content) {
-                        top.linkTo(parent.top)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                        bottom.linkTo(row.top)
-                        height = Dimension.fillToConstraints
-                    }
-            ) {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    selectedMessages?.let { messages ->
-                        items(messages.size) { index ->
-                            ChatBubble(messages[index])
-                        }
-                    }
-                }
-
-                if (showSidebar) {
-                    ThreadsSidebar(
-                        conversations = conversations.map { it.toEntity() },
-                        onThreadClick = { sessionId ->
-                            showSidebar = false
-                            onEvent(ChatUiEvent.SelectConversation(sessionId))
-                            selectedThreadId = sessionId
-                            Log.d("QComposerScreen", "Thread Clicked: $selectedThreadId")
-                        },
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .width(200.dp)
-                            .background(color = MaterialTheme.colorScheme.surface)
-                            .border(width = 1.dp, color = Color.LightGray)
-                    )
-                }
-            }
-
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .background(color = Color.White, shape = RoundedCornerShape(24.dp))
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .constrainAs(row) {
-                        bottom.linkTo(parent.bottom, 16.dp)
-                    },
-                shape = RoundedCornerShape(24.dp),
-                color = Color.White,
-                border = BorderStroke(1.dp, Color.LightGray)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    TextField(
-                        value = message,
-                        onValueChange = { message = it },
-                        placeholder = { Text("Type a message") },
-                        modifier = Modifier
-                            .weight(1f)
-                            .background(color = Color.Transparent, shape = RoundedCornerShape(24.dp)),
-                        colors = TextFieldDefaults.textFieldColors(
-                            containerColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
-                        ),
-                        keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
-                    )
-
-                    IconButton(
-                        onClick = {
-                            if (message.isNotBlank()) {
-                                Log.d("QComposerScreen", "Sending Message: $message to ${selectedThreadId ?: "new conversation"}")
-                                coroutineScope.launch {
-                                    onEvent(ChatUiEvent.SendMessage(selectedThreadId ?: "", message))
-                                    message = ""
-                                    keyboardController?.hide()
-
-                                    while (true) {
-                                        delay(1000)
-                                        runStatusViewModel.fetchRunStatus(selectedThreadId ?: "")
-                                        if (runStatusViewModel.status.value == "completed") {
-                                            Log.d("QComposerScreen", "Message processing completed for thread: $selectedThreadId")
-                                            break
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        var modelDropdownExpanded by remember { mutableStateOf(false) }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = modelMapping[selectedModel] ?: DEFAULT_MODEL,
+                                modifier = Modifier.clickable { modelDropdownExpanded = !modelDropdownExpanded },
+                                color = Color.Gray
+                            )
+                            DropdownMenu(
+                                expanded = modelDropdownExpanded,
+                                onDismissRequest = { modelDropdownExpanded = false }
+                            ) {
+                                modelMapping.keys.forEach { key ->
+                                    DropdownMenuItem(
+                                        text = { Text(modelMapping[key] ?: key) },
+                                        onClick = {
+                                            viewModel.saveSelectedModel(key)
+                                            modelDropdownExpanded = false
                                         }
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.weight(1f))
+                            AnimatedOrb(runStatusViewModel = runStatusViewModel)
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { showSidebar = !showSidebar }) {
+                            Icon(Icons.Default.Menu, contentDescription = "Toggle Sidebar", tint = Color.Gray)
+                        }
+                    },
+                    actions = {
+                        Row {
+                            IconButton(onClick = {
+                                viewModel.createSession()
+                                selectedThreadId = null
+                            }) {
+                                Icon(Icons.Default.Add, contentDescription = "Create Session", tint = Color.Gray)
+                            }
+                            IconButton(onClick = { expanded = !expanded }) {
+                                Icon(Icons.Default.MoreVert, contentDescription = "Menu", tint = Color.Gray)
+                            }
+                        }
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                            offset = DpOffset((-160).dp, (-16).dp)
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Files", color = Color.Gray) },
+                                onClick = {
+                                    expanded = false
+                                    Log.d("QComposerScreen", "Files clicked")
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Settings", color = Color.Gray) },
+                                onClick = {
+                                    expanded = false
+                                    Log.d("QComposerScreen", "Settings clicked")
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Profile", color = Color.Gray) },
+                                onClick = {
+                                    expanded = false
+                                    Log.d("QComposerScreen", "Profile clicked")
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Personality", color = Color.Gray) },
+                                onClick = {
+                                    expanded = false
+                                    navHostController.navigate(Destinations.PERSONALITY_SELECTION_ROUTE)
+                                    Log.d("QComposerScreen", "Select Personality clicked")
+                                }
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.White,
+                        titleContentColor = Color.Gray
+                    )
+                )
+            }
+        ) { paddingValues ->
+            ConstraintLayout(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                val (sidebar, content, row) = createRefs()
+
+                if (isLandscape) {
+                    Row(modifier = Modifier.fillMaxSize()) {
+                        if (showSidebar) {
+                            ThreadsSidebar(
+                                conversations = conversations.map { it.toEntity() },
+                                onThreadClick = { sessionId ->
+                                    showSidebar = false
+                                    onEvent(ChatUiEvent.SelectConversation(sessionId))
+                                    selectedThreadId = sessionId
+                                    Log.d("QComposerScreen", "Thread Clicked: $selectedThreadId")
+                                },
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .width(200.dp)
+                                    .background(color = MaterialTheme.colorScheme.surface)
+                                    .border(width = 1.dp, color = Color.LightGray)
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .weight(1f)
+                        ) {
+                            LazyColumn(
+                                state = listState,
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                selectedMessages?.let { messages ->
+                                    items(messages.size) { index ->
+                                        ChatBubble(messages[index])
                                     }
                                 }
-                            } else {
-                                showToast(context, "Please enter a message")
                             }
-                        },
+                        }
+                    }
+                } else {
+                    Box(
                         modifier = Modifier
-                            .size(40.dp)
-                            .background(color = Color(0xFFff6c00), shape = CircleShape)
-                            .padding(8.dp)
+                            .constrainAs(content) {
+                                top.linkTo(parent.top)
+                                start.linkTo(parent.start)
+                                end.linkTo(parent.end)
+                                bottom.linkTo(row.top)
+                                height = Dimension.fillToConstraints
+                            }
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowUpward,
-                            contentDescription = "Send",
-                            tint = Color.White
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            selectedMessages?.let { messages ->
+                                items(messages.size) { index ->
+                                    ChatBubble(messages[index])
+                                }
+                            }
+                        }
+
+                        if (showSidebar) {
+                            ThreadsSidebar(
+                                conversations = conversations.map { it.toEntity() },
+                                onThreadClick = { sessionId ->
+                                    showSidebar = false
+                                    onEvent(ChatUiEvent.SelectConversation(sessionId))
+                                    selectedThreadId = sessionId
+                                    Log.d("QComposerScreen", "Thread Clicked: $selectedThreadId")
+                                },
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .width(200.dp)
+                                    .background(color = MaterialTheme.colorScheme.surface)
+                                    .border(width = 1.dp, color = Color.LightGray)
+                            )
+                        }
+                    }
+                }
+
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .background(color = Color.White, shape = RoundedCornerShape(24.dp))
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .constrainAs(row) {
+                            bottom.linkTo(parent.bottom, 16.dp)
+                        },
+                    shape = RoundedCornerShape(24.dp),
+                    color = Color.White,
+                    border = BorderStroke(1.dp, Color.LightGray)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        TextField(
+                            value = message,
+                            onValueChange = { message = it },
+                            placeholder = { Text("Type a message") },
+                            modifier = Modifier
+                                .weight(1f)
+                                .background(color = Color.Transparent, shape = RoundedCornerShape(24.dp)),
+                            colors = TextFieldDefaults.textFieldColors(
+                                containerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent
+                            ),
+                            keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
                         )
+
+                        IconButton(
+                            onClick = {
+                                if (message.isNotBlank()) {
+                                    Log.d("QComposerScreen", "Sending Message: $message to ${selectedThreadId ?: "new conversation"}")
+                                    coroutineScope.launch {
+                                        onEvent(ChatUiEvent.SendMessage(selectedThreadId ?: "", message))
+                                        message = ""
+                                        keyboardController?.hide()
+
+                                        while (true) {
+                                            delay(1000)
+                                            runStatusViewModel.fetchRunStatus(selectedThreadId ?: "")
+                                            if (runStatusViewModel.status.value == "completed") {
+                                                Log.d("QComposerScreen", "Message processing completed for thread: $selectedThreadId")
+                                                break
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    showToast(context, "Please enter a message")
+                                }
+                            },
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(color = Color(0xFFff6c00), shape = CircleShape)
+                                .padding(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowUpward,
+                                contentDescription = "Send",
+                                tint = Color.White
+                            )
+                        }
                     }
                 }
             }

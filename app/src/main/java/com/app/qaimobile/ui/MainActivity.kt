@@ -6,6 +6,9 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.NavHost
@@ -20,6 +23,7 @@ import com.app.qaimobile.ui.theme.QAiMobileTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
+import androidx.compose.runtime.*
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -33,27 +37,27 @@ class MainActivity : ComponentActivity() {
         setContent {
             QAiMobileTheme {
                 val navController = rememberNavController()
+                val startDestination = remember { mutableStateOf(SplashScreenDestination.route) }
+
                 LaunchedEffect(Unit) {
                     val isLoggedIn = dataStore.getIsLoggedIn().first()
-                    val startDestination = if (isLoggedIn) {
+                    startDestination.value = if (isLoggedIn) {
                         HomeScreenDestination.route
                     } else {
                         LoginScreenDestination.route
                     }
-                    navController.navigate(startDestination) {
+                    navController.navigate(startDestination.value) {
                         launchSingleTop = true
                         popUpTo(navController.graph.startDestinationId)
                     }
                 }
+
                 NavHost(
-                    modifier =
-                    Modifier.background(
-                        MaterialTheme.colorScheme.background
-                    ),
+                    modifier = Modifier.background(MaterialTheme.colorScheme.background),
                     navController = navController,
                     startDestination = APP_NAV_GRAPH_ROUTE,
                 ) {
-                    appNavGraph(navController, SplashScreenDestination.route)
+                    appNavGraph(navController, startDestination.value)
                 }
             }
         }
