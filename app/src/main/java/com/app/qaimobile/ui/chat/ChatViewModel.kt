@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.qaimobile.util.Constants.DEFAULT_MODEL
 import com.app.qaimobile.data.datastore.DataStoreManager
 import com.app.qaimobile.data.datastore.PreferencesKeys
 import com.app.qaimobile.data.model.network.ConversationSessionDto
@@ -40,10 +41,14 @@ class ChatViewModel @Inject constructor(
     private val _selectedConversationMessages = MutableStateFlow<List<Message>?>(null)
     val selectedConversationMessages: StateFlow<List<Message>?> = _selectedConversationMessages
 
-    private val _selectedModel = MutableStateFlow<String>("3.5") // Default model
+    private val _selectedModel = MutableStateFlow<String>(DEFAULT_MODEL) // Default model
     val selectedModel: StateFlow<String> = _selectedModel.asStateFlow()
 
     fun onEvent(event: ChatUiEvent) {
+
+
+
+
         when (event) {
             is ChatUiEvent.ShowError -> {
                 // Handle error events
@@ -120,6 +125,14 @@ class ChatViewModel @Inject constructor(
     }
 
     private fun sendMessage(conversationId: String?, message: String) {
+
+
+        val modelMapping = mapOf(
+            "gpt-4o" to "4o",
+            "gpt-4-turbo-2024-04-09" to "4",
+            "gpt-3.5-turbo" to "3.5"
+        )
+
         viewModelScope.launch {
             val finalConversationId = conversationId ?: generateId()
 
@@ -155,7 +168,7 @@ class ChatViewModel @Inject constructor(
             try {
                 // Retrieve the actual string values from the Flow objects
                 val personality = dataStoreManager.getPersonality().firstOrNull() ?: ""
-                val selectedModel = dataStoreManager.getSelectedModel().firstOrNull() ?: "3.5"
+                val selectedModel = dataStoreManager.getSelectedModel().firstOrNull() ?: DEFAULT_MODEL
 
                 // Create the SendMessageRequest with the string values
                 val request = SendMessageRequest(finalConversationId, message, personality, selectedModel)
