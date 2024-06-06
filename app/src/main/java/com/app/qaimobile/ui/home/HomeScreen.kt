@@ -86,6 +86,12 @@ fun HomeScreen(
             }) {
                 Text(text = "Continue")
             }
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = {
+                onEvent(HomeViewModelEvent.Logout)
+            }) {
+                Text(text = "Logout")
+            }
         }
     }
 }
