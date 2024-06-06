@@ -1,5 +1,3 @@
-package com.app.qaimobile.ui.home
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -25,21 +23,18 @@ fun HomeScreen(
     navHostController: NavController? = null
 ) {
     val context = LocalContext.current
-
     LaunchedEffect(Unit) {
         uiEvent.collect {
             when (it) {
                 is HomeUiEvent.ShowMessage -> {
                     showToast(context, it.message)
                 }
-
                 is HomeUiEvent.Navigate -> {
                     navHostController?.navigate(it.route, builder = it.navOptionsBuilder)
                 }
             }
         }
     }
-
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier
@@ -81,10 +76,22 @@ fun HomeScreen(
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
             Spacer(modifier = Modifier.height(32.dp))
-            Button(onClick = {
-                navHostController?.navigate(Destinations.CHAT_ROUTE)
-            }) {
+            Button(
+                onClick = {
+                    navHostController?.navigate(Destinations.CHAT_ROUTE)
+                },
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
                 Text(text = "Continue")
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = {
+                    onEvent(HomeViewModelEvent.Logout)
+                },
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                Text(text = "Logout")
             }
         }
     }
