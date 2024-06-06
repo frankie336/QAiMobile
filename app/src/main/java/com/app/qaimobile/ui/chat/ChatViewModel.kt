@@ -1,5 +1,6 @@
 package com.app.qaimobile.ui.chat
 
+import com.app.qaimobile.util.Constants.DEFAULT_MODEL
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -48,7 +49,7 @@ class ChatViewModel @Inject constructor(
     private val _selectedConversationMessages = MutableStateFlow<List<Message>?>(null)
     val selectedConversationMessages: StateFlow<List<Message>?> = _selectedConversationMessages
 
-    private val _selectedModel = MutableStateFlow<String>("3.5") // Default model
+    private val _selectedModel = MutableStateFlow<String>(DEFAULT_MODEL) // Default model
     val selectedModel: StateFlow<String> = _selectedModel.asStateFlow()
 
     private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

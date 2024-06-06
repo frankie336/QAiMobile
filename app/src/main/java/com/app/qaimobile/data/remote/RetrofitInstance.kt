@@ -1,6 +1,7 @@
 package com.app.qaimobile.data.remote
 
 import com.app.qaimobile.util.Constants.DEV_URL
+import com.app.qaimobile.util.Constants.BASE_URL
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -18,7 +19,7 @@ object RetrofitInstance {
 
     private val retrofit by lazy {
         Retrofit.Builder()
-            .baseUrl(DEV_URL)
+            .baseUrl(BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
