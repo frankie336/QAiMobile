@@ -113,6 +113,9 @@ dependencies {
     // Coil for image loading
     implementation("io.coil-kt:coil-compose:2.0.0")
 
+    //Notifications
+    implementation("androidx.core:core-ktx:1.6.0")
+
     // Testing libraries
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

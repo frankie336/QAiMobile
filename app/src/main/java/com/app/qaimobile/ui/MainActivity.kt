@@ -1,15 +1,19 @@
 package com.app.qaimobile.ui
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -33,12 +37,18 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Install the splash screen
         installSplashScreen()
+
+        // Create notification channel
+        createNotificationChannel()
+
         setContent {
             QAiMobileTheme {
                 val navController = rememberNavController()
                 val startDestination = remember { mutableStateOf(SplashScreenDestination.route) }
 
+                // Determine the start destination based on login status
                 LaunchedEffect(Unit) {
                     val isLoggedIn = dataStore.getIsLoggedIn().first()
                     startDestination.value = if (isLoggedIn) {
@@ -52,6 +62,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                // Set up navigation host
                 NavHost(
                     modifier = Modifier.background(MaterialTheme.colorScheme.background),
                     navController = navController,
@@ -60,6 +71,44 @@ class MainActivity : ComponentActivity() {
                     appNavGraph(navController, startDestination.value)
                 }
             }
+        }
+    }
+
+    /**
+     * Creates a notification channel for displaying messages from Q.
+     * This method is required for API 26+ (Oreo and above) to display notifications.
+     */
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = "Message Channel"
+            val descriptionText = "Channel for Q messages"
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val channel = NotificationChannel("Q_MESSAGES", name, importance).apply {
+                description = descriptionText
+            }
+            // Register the channel with the system
+            val notificationManager: NotificationManager =
+                getSystemService(NotificationManager::class.java)
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
+    /**
+     * Displays a notification with the specified title and message.
+     *
+     * @param title The title of the notification.
+     * @param message The content of the notification.
+     */
+    private fun showNotification(title: String, message: String) {
+        val notificationBuilder = NotificationCompat.Builder(this, "Q_MESSAGES")
+            .setSmallIcon(android.R.drawable.ic_dialog_info)  // Using a built-in Android icon
+            .setContentTitle(title)
+            .setContentText(message)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+
+        with(NotificationManagerCompat.from(this)) {
+            notify(1, notificationBuilder.build())
         }
     }
 }

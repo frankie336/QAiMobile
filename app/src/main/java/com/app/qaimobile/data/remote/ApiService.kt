@@ -73,7 +73,12 @@ data class SendMessageResponse(
     val conversationId: String,
     @SerializedName("thread_id")
     val threadId: String
-)
+) {
+    val messages: Any
+        get() {
+            TODO()
+        }
+}
 
 /**
  * Data class representing the response from getting the run status.

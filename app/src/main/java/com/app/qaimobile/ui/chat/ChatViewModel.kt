@@ -1,10 +1,15 @@
 package com.app.qaimobile.ui.chat
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.os.Build
 import android.util.Log
-import com.app.qaimobile.util.Constants.DEFAULT_MODEL
+import androidx.core.app.NotificationCompat
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.qaimobile.R
 import com.app.qaimobile.data.datastore.DataStoreManager
 import com.app.qaimobile.data.datastore.PreferencesKeys
 import com.app.qaimobile.data.model.network.ConversationSessionDto
@@ -18,6 +23,7 @@ import com.app.qaimobile.data.remote.SendMessageRequest
 import com.app.qaimobile.domain.repository.ConversationRepository
 import com.app.qaimobile.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -26,7 +32,8 @@ import javax.inject.Inject
 class ChatViewModel @Inject constructor(
     private val conversationRepository: ConversationRepository,
     private val dataStoreManager: DataStoreManager,
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiEvent = MutableSharedFlow<ChatUiEvent>()
@@ -41,8 +48,21 @@ class ChatViewModel @Inject constructor(
     private val _selectedConversationMessages = MutableStateFlow<List<Message>?>(null)
     val selectedConversationMessages: StateFlow<List<Message>?> = _selectedConversationMessages
 
-    private val _selectedModel = MutableStateFlow<String>(DEFAULT_MODEL) // Default model
+    private val _selectedModel = MutableStateFlow<String>("3.5") // Default model
     val selectedModel: StateFlow<String> = _selectedModel.asStateFlow()
+
+    private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+    init {
+        createNotificationChannel()
+        viewModelScope.launch {
+            // Retrieve the selected model from DataStore
+            val savedModel = dataStoreManager.getSelectedModel()
+            savedModel?.let {
+                _selectedModel.value = it.toString()
+            }
+        }
+    }
 
     fun onEvent(event: ChatUiEvent) {
         when (event) {
@@ -156,7 +176,7 @@ class ChatViewModel @Inject constructor(
             try {
                 // Retrieve the actual string values from the Flow objects
                 val personality = dataStoreManager.getPersonality().firstOrNull() ?: ""
-                val selectedModel = dataStoreManager.getSelectedModel().firstOrNull() ?: DEFAULT_MODEL
+                val selectedModel = dataStoreManager.getSelectedModel().firstOrNull() ?: "3.5"
 
                 // Create the SendMessageRequest with the string values
                 val request = SendMessageRequest(finalConversationId, message, personality, selectedModel)
@@ -187,6 +207,9 @@ class ChatViewModel @Inject constructor(
 
                         refreshConversations()
                         _uiEvent.emit(ChatUiEvent.Success)
+
+                        // Show notification for new message
+                        showNotification("New Message", "You have a new message from Q")
                     } else {
                         Log.d("ChatViewModel", "Response body is null")
                     }
@@ -240,13 +263,27 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    init {
-        viewModelScope.launch {
-            // Retrieve the selected model from DataStore
-            val savedModel = dataStoreManager.getSelectedModel()
-            savedModel?.let {
-                _selectedModel.value = it.toString()
-            }
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "chat_notifications",
+                "Chat Notifications",
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+            notificationManager.createNotificationChannel(channel)
         }
     }
+
+    private fun showNotification(title: String, message: String) {
+        val builder = NotificationCompat.Builder(context, "chat_notifications")
+            .setSmallIcon(android.R.drawable.ic_notification_overlay)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+
+        notificationManager.notify(0, builder.build())
+    }
+
+
 }
