@@ -27,7 +27,6 @@ import com.app.qaimobile.ui.theme.QAiMobileTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
-import androidx.compose.runtime.*
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -72,6 +71,16 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        // Save any necessary state information here
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        // Restore any saved state information here
     }
 
     /**
