@@ -1,7 +1,6 @@
 package com.app.qaimobile.ui.chat
 
-import com.app.qaimobile.util.Constants.DEFAULT_MODEL
-import android.util.Log
+import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.DpOffset
@@ -34,6 +34,7 @@ import com.app.qaimobile.ui.composables.ChatBubble
 import com.app.qaimobile.ui.composables.LoadingDialog
 import com.app.qaimobile.ui.home.ThreadsSidebar
 import com.app.qaimobile.ui.viewmodel.RunStatusViewModel
+import com.app.qaimobile.util.Constants.DEFAULT_MODEL
 import com.app.qaimobile.util.showToast
 import com.ramcosta.composedestinations.annotation.Destination
 import kotlinx.coroutines.delay
@@ -70,6 +71,9 @@ fun QComposerScreen(
 
     var selectedThreadId by remember { mutableStateOf<String?>(null) }
 
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
     LaunchedEffect(Unit) {
         viewModel.fetchConversations()
         uiEvent.collect { event ->
@@ -79,7 +83,6 @@ fun QComposerScreen(
                 is ChatUiEvent.ConversationsLoaded -> {}
                 is ChatUiEvent.SelectConversation -> {
                     selectedThreadId = event.conversationId
-                    Log.d("QComposerScreen", "Selected Conversation ID: $selectedThreadId")
                 }
                 is ChatUiEvent.SendMessage -> {}
             }
@@ -90,7 +93,6 @@ fun QComposerScreen(
         selectedMessages?.let { messages ->
             if (messages.isNotEmpty()) {
                 listState.animateScrollToItem(messages.size - 1)
-                Log.d("QComposerScreen", "Messages updated: $messages")
             }
         }
     }
@@ -155,28 +157,24 @@ fun QComposerScreen(
                             text = { Text("Files", color = Color.Gray) },
                             onClick = {
                                 expanded = false
-                                Log.d("QComposerScreen", "Files clicked")
                             }
                         )
                         DropdownMenuItem(
                             text = { Text("Settings", color = Color.Gray) },
                             onClick = {
                                 expanded = false
-                                Log.d("QComposerScreen", "Settings clicked")
                             }
                         )
                         DropdownMenuItem(
                             text = { Text("Models", color = Color.Gray) },
                             onClick = {
                                 expanded = false
-                                Log.d("QComposerScreen", "Models clicked")
                             }
                         )
                         DropdownMenuItem(
                             text = { Text("Profile", color = Color.Gray) },
                             onClick = {
                                 expanded = false
-                                Log.d("QComposerScreen", "Profile clicked")
                             }
                         )
                         DropdownMenuItem(
@@ -184,14 +182,12 @@ fun QComposerScreen(
                             onClick = {
                                 expanded = false
                                 navHostController.navigate(Destinations.PERSONALITY_SELECTION_ROUTE)
-                                Log.d("QComposerScreen", "Select Personality clicked")
                             }
                         )
                         DropdownMenuItem(
                             text = { Text("Logout", color = Color.Gray) },
                             onClick = {
                                 expanded = false
-                                Log.d("QComposerScreen", "Logout clicked")
                             }
                         )
                     }
@@ -214,7 +210,7 @@ fun QComposerScreen(
                 modifier = Modifier
                     .constrainAs(content) {
                         top.linkTo(parent.top)
-                        start.linkTo(parent.start)
+                        start.linkTo(if (isLandscape && showSidebar) sidebar.end else parent.start)
                         end.linkTo(parent.end)
                         bottom.linkTo(row.top)
                         height = Dimension.fillToConstraints
@@ -230,23 +226,27 @@ fun QComposerScreen(
                         }
                     }
                 }
+            }
 
-                if (showSidebar) {
-                    ThreadsSidebar(
-                        conversations = conversations.map { it.toEntity() },
-                        onThreadClick = { sessionId ->
-                            showSidebar = false
-                            onEvent(ChatUiEvent.SelectConversation(sessionId))
-                            selectedThreadId = sessionId
-                            Log.d("QComposerScreen", "Thread Clicked: $selectedThreadId")
-                        },
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .width(200.dp)
-                            .background(color = MaterialTheme.colorScheme.surface)
-                            .border(width = 1.dp, color = Color.LightGray)
-                    )
-                }
+            if (showSidebar) {
+                ThreadsSidebar(
+                    conversations = conversations.map { it.toEntity() },
+                    onThreadClick = { sessionId ->
+                        showSidebar = false
+                        onEvent(ChatUiEvent.SelectConversation(sessionId))
+                        selectedThreadId = sessionId
+                    },
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(if (isLandscape) 300.dp else 200.dp)
+                        .background(color = MaterialTheme.colorScheme.surface)
+                        .border(width = 1.dp, color = Color.LightGray)
+                        .constrainAs(sidebar) {
+                            top.linkTo(parent.top)
+                            start.linkTo(parent.start)
+                            bottom.linkTo(parent.bottom)
+                        }
+                )
             }
 
             Surface(
@@ -285,7 +285,6 @@ fun QComposerScreen(
                     IconButton(
                         onClick = {
                             if (message.isNotBlank()) {
-                                Log.d("QComposerScreen", "Sending Message: $message to ${selectedThreadId ?: "new conversation"}")
                                 coroutineScope.launch {
                                     onEvent(ChatUiEvent.SendMessage(selectedThreadId ?: "", message))
                                     message = ""
@@ -295,7 +294,6 @@ fun QComposerScreen(
                                         delay(1000)
                                         runStatusViewModel.fetchRunStatus(selectedThreadId ?: "")
                                         if (runStatusViewModel.status.value == "completed") {
-                                            Log.d("QComposerScreen", "Message processing completed for thread: $selectedThreadId")
                                             break
                                         }
                                     }
