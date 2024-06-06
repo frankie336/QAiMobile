@@ -32,7 +32,6 @@ fun HomeScreen(
                 is HomeUiEvent.ShowMessage -> {
                     showToast(context, it.message)
                 }
-
                 is HomeUiEvent.Navigate -> {
                     navHostController?.navigate(it.route, builder = it.navOptionsBuilder)
                 }
@@ -58,7 +57,11 @@ fun HomeScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
-            Divider(color = Color.LightGray, thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
+            Divider(
+                color = Color.LightGray,
+                thickness = 1.dp,
+                modifier = Modifier.padding(vertical = 8.dp, horizontal = 32.dp)
+            )
             Text(
                 text = "Q can be inaccurate",
                 style = MaterialTheme.typography.bodyLarge,
@@ -69,7 +72,11 @@ fun HomeScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
-            Divider(color = Color.LightGray, thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
+            Divider(
+                color = Color.LightGray,
+                thickness = 1.dp,
+                modifier = Modifier.padding(vertical = 8.dp, horizontal = 32.dp)
+            )
             Text(
                 text = "Control your chat history",
                 style = MaterialTheme.typography.bodyLarge,
