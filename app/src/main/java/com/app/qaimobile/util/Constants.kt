@@ -13,7 +13,7 @@ object Constants {
     const val WRITE_TIMEOUT = 120L
 
     //Models
-    const val DEFAULT_MODEL = "gpt-4o"
+    const val DEFAULT_MODEL = "4o"
 
 
 }
