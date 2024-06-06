@@ -3,56 +3,68 @@ package com.app.qaimobile.navigation
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.app.qaimobile.navigation.Destinations.APP_NAV_GRAPH_ROUTE
-import com.app.qaimobile.ui.destinations.ForgotPasswordScreenDestination
-import com.app.qaimobile.ui.destinations.HomeScreenDestination
-import com.app.qaimobile.ui.destinations.LoginScreenDestination
-import com.app.qaimobile.ui.destinations.SplashScreenDestination
+import com.app.qaimobile.ui.chat.QComposerScreen
+import com.app.qaimobile.ui.chat.ChatViewModel
 import com.app.qaimobile.ui.forgot_password.ForgotPasswordScreen
 import com.app.qaimobile.ui.forgot_password.ForgotPasswordViewModel
 import com.app.qaimobile.ui.home.HomeScreen
 import com.app.qaimobile.ui.home.HomeViewModel
 import com.app.qaimobile.ui.login.LoginScreen
 import com.app.qaimobile.ui.login.LoginViewModel
+import com.app.qaimobile.ui.settings.PersonalitySelectionScreen // Import the PersonalitySelectionScreen
 import com.app.qaimobile.ui.splash.SplashScreen
-import com.ramcosta.composedestinations.utils.composable
 
 fun NavGraphBuilder.appNavGraph(navController: NavController, startDestination: String) {
-
     navigation(route = APP_NAV_GRAPH_ROUTE, startDestination = startDestination) {
-        composable(LoginScreenDestination) {
+        composable(Destinations.LOGIN_ROUTE) {
             val loginViewModel: LoginViewModel = hiltViewModel()
             LoginScreen(
                 state = loginViewModel.state.value,
                 onEvent = loginViewModel::onEvent,
                 uiEvent = loginViewModel.uiEvent,
-                navHostController = destinationsNavigator(navController)
+                navHostController = navController
             )
         }
 
-        composable(HomeScreenDestination) {
+        composable(Destinations.HOME_ROUTE) {
             val homeViewModel: HomeViewModel = hiltViewModel()
             HomeScreen(
                 onEvent = homeViewModel::onEvent,
                 uiEvent = homeViewModel.uiEvent,
-                navHostController = destinationsNavigator(navController)
+                navHostController = navController
             )
         }
 
-        composable(ForgotPasswordScreenDestination) {
+        composable(Destinations.FORGOT_PASSWORD_ROUTE) {
             val forgotPasswordViewModel: ForgotPasswordViewModel = hiltViewModel()
             ForgotPasswordScreen(
                 state = forgotPasswordViewModel.state.value,
                 onEvent = forgotPasswordViewModel::onEvent,
                 uiEvent = forgotPasswordViewModel.uiEvent,
-                navHostController = destinationsNavigator(navController)
+                navHostController = navController
             )
         }
 
-        composable(SplashScreenDestination) {
+        composable(Destinations.SPLASH_ROUTE) {
             SplashScreen()
         }
-    }
 
+        composable(Destinations.CHAT_ROUTE) {
+            val chatViewModel: ChatViewModel = hiltViewModel()
+            QComposerScreen(
+                onEvent = chatViewModel::onEvent,
+                uiEvent = chatViewModel.uiEvent,
+                navHostController = navController
+            )
+        }
+
+        composable(Destinations.PERSONALITY_SELECTION_ROUTE) {
+            PersonalitySelectionScreen(
+                navController = navController
+            )
+        }
+    }
 }

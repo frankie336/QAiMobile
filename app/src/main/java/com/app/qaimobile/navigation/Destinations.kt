@@ -6,4 +6,6 @@ object Destinations {
     const val LOGIN_ROUTE = "login"
     const val HOME_ROUTE = "home"
     const val FORGOT_PASSWORD_ROUTE = "forgot_password"
+    const val CHAT_ROUTE = "chat"
+    const val PERSONALITY_SELECTION_ROUTE = "personality_selection"
 }

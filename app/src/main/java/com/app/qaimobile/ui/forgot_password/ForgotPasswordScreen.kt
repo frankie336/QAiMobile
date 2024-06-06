@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.app.qaimobile.R
 import com.app.qaimobile.navigation.Destinations
 import com.app.qaimobile.ui.composables.ComposeTextView
@@ -42,7 +43,6 @@ import com.app.qaimobile.ui.theme.CustomBoldTextStyle
 import com.app.qaimobile.ui.theme.CustomRegularTextStyle
 import com.app.qaimobile.util.showToast
 import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 
@@ -52,7 +52,7 @@ fun ForgotPasswordScreen(
     state: ForgotPasswordState,
     onEvent: (ForgotPasswordViewModelEvent) -> Unit = {},
     uiEvent: SharedFlow<ForgotPasswordUiEvent> = MutableSharedFlow(),
-    navHostController: DestinationsNavigator? = null
+    navHostController: NavController? = null
 ) {
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current

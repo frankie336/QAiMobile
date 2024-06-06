@@ -5,20 +5,22 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.app.qaimobile.domain.datastore.AppDataStore
-import com.app.qaimobile.util.asString
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-private val Context.dataStore by preferencesDataStore(name = DataStoreConstants.USER_PREFERENCES)
+private val Context.dataStore by preferencesDataStore(name = "user_preferences")
 
 class DataStoreManager(context: Context) : AppDataStore {
-    private val dataStore = context.dataStore
+    val dataStore = context.dataStore
 
     companion object {
-        val EMAIL_KEY = stringPreferencesKey(DataStoreConstants.EMAIL)
-        val PASSWORD_KEY = stringPreferencesKey(DataStoreConstants.PASSWORD)
-        val IS_LOGGED_IN_KEY = stringPreferencesKey(DataStoreConstants.IS_LOGGED_IN)
-        val ACCESS_TOKEN_KEY = stringPreferencesKey(DataStoreConstants.ACCESS_TOKEN)
+        val EMAIL_KEY = stringPreferencesKey("email")
+        val PASSWORD_KEY = stringPreferencesKey("password")
+        val IS_LOGGED_IN_KEY = stringPreferencesKey("is_logged_in")
+        val ACCESS_TOKEN_KEY = stringPreferencesKey("access_token")
+        val USER_ID_KEY = stringPreferencesKey("user_id")
+        val PERSONALITY_KEY = stringPreferencesKey("personality")
+        val SELECTED_MODEL_KEY = stringPreferencesKey("selected_model") // Add this line
     }
 
     override suspend fun saveUserCredentials(email: String, password: String) {
@@ -28,7 +30,7 @@ class DataStoreManager(context: Context) : AppDataStore {
         }
     }
 
-    override val userCredentials: Flow<Pair<String?, String?>> = dataStore.data.map { preferences ->
+    override fun getUserCredentials(): Flow<Pair<String?, String?>> = dataStore.data.map { preferences ->
         preferences[EMAIL_KEY] to preferences[PASSWORD_KEY]
     }
 
@@ -38,7 +40,7 @@ class DataStoreManager(context: Context) : AppDataStore {
         }
     }
 
-    override val isLoggedIn: Flow<Boolean> = dataStore.data.map { preferences ->
+    override fun getIsLoggedIn(): Flow<Boolean> = dataStore.data.map { preferences ->
         preferences[IS_LOGGED_IN_KEY]?.toBoolean() ?: false
     }
 
@@ -48,7 +50,38 @@ class DataStoreManager(context: Context) : AppDataStore {
         }
     }
 
-    override val accessToken: Flow<String> = dataStore.data.map { preferences ->
-        preferences[ACCESS_TOKEN_KEY].asString()
+    override fun getAccessToken(): Flow<String?> = dataStore.data.map { preferences ->
+        preferences[ACCESS_TOKEN_KEY]
+    }
+
+    override suspend fun saveUserId(userId: String) {
+        dataStore.edit { preferences ->
+            preferences[USER_ID_KEY] = userId
+        }
+    }
+
+    override fun getUserId(): Flow<String?> = dataStore.data.map { preferences ->
+        preferences[USER_ID_KEY]
+    }
+
+    suspend fun savePersonality(personality: String) {
+        dataStore.edit { preferences ->
+            preferences[PERSONALITY_KEY] = personality
+        }
+    }
+
+    fun getPersonality(): Flow<String?> = dataStore.data.map { preferences ->
+        preferences[PERSONALITY_KEY]
+    }
+
+    // Add these methods
+    suspend fun saveSelectedModel(model: String) {
+        dataStore.edit { preferences ->
+            preferences[SELECTED_MODEL_KEY] = model
+        }
+    }
+
+    fun getSelectedModel(): Flow<String?> = dataStore.data.map { preferences ->
+        preferences[SELECTED_MODEL_KEY]
     }
 }
