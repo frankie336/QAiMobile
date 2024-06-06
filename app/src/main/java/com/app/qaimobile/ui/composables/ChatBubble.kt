@@ -1,16 +1,22 @@
+// ui/composables/ChatBubble.kt
 package com.app.qaimobile.ui.composables
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.app.qaimobile.data.model.network.Message
 import com.app.qaimobile.util.parseMarkdownContent
 
@@ -42,29 +48,31 @@ fun ChatBubble(message: Message) {
                 .padding(8.dp)
                 .padding(vertical = 4.dp)
         ) {
-            Column {
-                Text(
-                    text = if (isUser) "You:" else "Assistant:",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Black
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                message.content.forEach { content ->
-                    val text = content.text?.value ?: ""
-                    val imageUrl = extractImageUrl(text)
-                    if (imageUrl != null) {
-                        ImageFromUrl(url = imageUrl, modifier = Modifier.fillMaxWidth().height(200.dp))
-                        Text(
-                            text = parseMarkdownContent(text.replace(imageUrl, "").trim()),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Black
-                        )
-                    } else {
-                        Text(
-                            text = parseMarkdownContent(text),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Black
-                        )
+            SelectionContainer {
+                Column {
+                    Text(
+                        text = if (isUser) "You:" else "Assistant:",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Black
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    message.content.forEach { content ->
+                        val text = content.text?.value ?: ""
+                        val imageUrl = extractImageUrl(text)
+                        if (imageUrl != null) {
+                            ImageFromUrl(url = imageUrl, modifier = Modifier.fillMaxWidth().height(200.dp))
+                            Text(
+                                text = parseMarkdownContent(text.replace(imageUrl, "").trim()),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Black
+                            )
+                        } else {
+                            Text(
+                                text = parseMarkdownContent(text),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Black
+                            )
+                        }
                     }
                 }
             }

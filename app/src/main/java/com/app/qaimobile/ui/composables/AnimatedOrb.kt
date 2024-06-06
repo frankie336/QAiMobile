@@ -1,5 +1,3 @@
-package com.app.qaimobile.ui.composables
-
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
@@ -20,38 +18,21 @@ fun AnimatedOrb(runStatusViewModel: RunStatusViewModel) {
     val infiniteTransition = rememberInfiniteTransition()
 
     // Default colors for steady state
-    val defaultColor1 = Color.Cyan
-    val defaultColor2 = Color.Magenta
+    val defaultColor = Color.Cyan
 
-    // Colors based on status
-    val color1 = when (status) {
+    // Color based on status
+    val color = when (status) {
         "queued", "failed" -> Color(0xFFFFB3B3) // Pastel Red
         "in_progress" -> Color(0xFFFFCC66) // Pastel Orange
         "completed" -> Color(0xFFB3FFB3) // Pastel Green
         "cancelled", "expired" -> Color(0xFFD9D9D9) // Pastel Gray
-        else -> defaultColor1 // Default to steady state colors
+        else -> defaultColor // Default to steady state color
     }
 
-    val color2 = when (status) {
-        "queued", "failed" -> Color(0xFFFFE0B3) // Pastel Orange
-        "in_progress" -> Color(0xFFB3FFB3) // Pastel Green
-        "completed" -> Color(0xFFD9D9D9) // Pastel Gray
-        "cancelled", "expired" -> Color(0xFFFFB3B3) // Pastel Red
-        else -> defaultColor2 // Default to steady state colors
-    }
-
-    // Determine the colors based on the status
-    val animatedColor1 by infiniteTransition.animateColor(
-        initialValue = if (status == "idle") defaultColor1 else color1,
-        targetValue = if (status == "idle") defaultColor2 else color2,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 2000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        )
-    )
-    val animatedColor2 by infiniteTransition.animateColor(
-        initialValue = if (status == "idle") defaultColor2 else color2,
-        targetValue = if (status == "idle") defaultColor1 else color1,
+    // Determine the animated color based on the status
+    val animatedColor by infiniteTransition.animateColor(
+        initialValue = if (status == "idle") defaultColor else color,
+        targetValue = if (status == "idle") Color.Magenta else color,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 2000, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
@@ -79,7 +60,7 @@ fun AnimatedOrb(runStatusViewModel: RunStatusViewModel) {
 
             drawCircle(
                 brush = Brush.radialGradient(
-                    colors = listOf(animatedColor1, animatedColor2),
+                    colors = listOf(animatedColor, animatedColor.copy(alpha = 0.5f)),
                     center = Offset(canvasWidth / 2, canvasHeight / 2),
                     radius = canvasWidth * 0.3f * scale
                 ),
@@ -93,5 +74,17 @@ fun AnimatedOrb(runStatusViewModel: RunStatusViewModel) {
                 center = Offset(canvasWidth / 2, canvasHeight / 2)
             )
         }
+    }
+
+    // Reset to default colors when the status is terminal
+    if (status in listOf("completed", "failed", "cancelled", "expired", "error")) {
+        infiniteTransition.animateColor(
+            initialValue = defaultColor,
+            targetValue = Color.Magenta,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 2000, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse
+            )
+        )
     }
 }

@@ -1,6 +1,4 @@
 package com.app.qaimobile.data.remote
-
-import com.app.qaimobile.util.Constants.DEV_URL
 import com.app.qaimobile.util.Constants.BASE_URL
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

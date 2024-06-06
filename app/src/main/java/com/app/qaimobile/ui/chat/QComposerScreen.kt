@@ -1,5 +1,6 @@
 package com.app.qaimobile.ui.chat
 
+import AnimatedOrb
 import com.app.qaimobile.util.Constants.DEFAULT_MODEL
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
@@ -30,7 +31,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.app.qaimobile.data.model.network.toEntity
 import com.app.qaimobile.navigation.Destinations
-import com.app.qaimobile.ui.composables.AnimatedOrb
 import com.app.qaimobile.ui.composables.ChatBubble
 import com.app.qaimobile.ui.composables.LoadingDialog
 import com.app.qaimobile.ui.home.ThreadsSidebar
@@ -319,12 +319,12 @@ fun QComposerScreen(
                                         message = ""
                                         keyboardController?.hide()
 
-                                        while (true) {
+                                        var isCompleted = false
+                                        while (!isCompleted) {
                                             delay(1000)
-                                            runStatusViewModel.fetchRunStatus(selectedThreadId ?: "")
-                                            if (runStatusViewModel.status.value == "completed") {
+                                            isCompleted = runStatusViewModel.fetchRunStatus(selectedThreadId ?: "")
+                                            if (isCompleted) {
                                                 Log.d("QComposerScreen", "Message processing completed for thread: $selectedThreadId")
-                                                break
                                             }
                                         }
                                     }
