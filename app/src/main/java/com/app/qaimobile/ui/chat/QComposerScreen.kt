@@ -275,6 +275,8 @@ fun QComposerScreen(
                         keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
                     )
 
+
+                    //When a user clicks the send button
                     IconButton(
                         onClick = {
                             if (message.isNotBlank()) {
@@ -283,18 +285,16 @@ fun QComposerScreen(
                                     message = ""
                                     keyboardController?.hide()
 
-                                    while (true) {
-                                        delay(1000)
-                                        runStatusViewModel.fetchRunStatus(selectedThreadId ?: "")
-                                        if (runStatusViewModel.status.value == "completed") {
-                                            break
-                                        }
-                                    }
+                                    runStatusViewModel.pollRunStatus(selectedThreadId ?: "")
                                 }
                             } else {
                                 showToast(context, "Please enter a message")
                             }
                         },
+
+
+
+
                         modifier = Modifier
                             .size(40.dp)
                             .background(color = Color(0xFFff6c00), shape = CircleShape)
