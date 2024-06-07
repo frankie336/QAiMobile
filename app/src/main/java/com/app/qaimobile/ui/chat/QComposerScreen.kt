@@ -296,7 +296,7 @@ fun QComposerScreen(
                                                 break
                                             }
                                         }
-                                        delay(1000)
+                                        delay(100)
                                     }
 
                                     if (runStatusViewModel.status.value != "completed") {

@@ -32,7 +32,7 @@ class RunStatusViewModel @Inject constructor() : ViewModel() {
                     Log.e("RunStatusViewModel", "Error fetching run status: ${e.message}")
                     break
                 }
-                delay(1000)
+                delay(100)
             }
             // Set the status back to "idle" after the message run is finished
             _status.value = "idle"

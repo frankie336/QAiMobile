@@ -64,9 +64,9 @@ fun HomeScreen(
 
 
             Text(
-                text = "Q is your humble assistant\n.",
+                text = "Q is your humble assistant, designed and built by Project David Ltd.\n",
 
-                style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
 
