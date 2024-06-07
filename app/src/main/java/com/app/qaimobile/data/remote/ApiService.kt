@@ -3,7 +3,6 @@ package com.app.qaimobile.data.remote
 import com.app.qaimobile.data.model.network.ConversationSessionDto
 import com.app.qaimobile.data.model.network.auth.LoginRequest
 import com.app.qaimobile.data.model.network.auth.LoginResponse
-import com.app.qaimobile.data.model.network.Message
 import com.google.gson.annotations.SerializedName
 import retrofit2.Response
 import retrofit2.http.Body
@@ -54,16 +53,6 @@ interface ApiService {
     @POST("bp_common/session-create")
     suspend fun createSession(): Response<CreateSessionResponse>
 }
-
-/**
- * Data class representing the request to send a message.
- */
-data class SendMessageRequest(
-    val conversationId: String,
-    val message: String,
-    val personality: String,
-    val selectedModel: String
-)
 
 /**
  * Data class representing the response from sending a message.

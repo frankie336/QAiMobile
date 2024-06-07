@@ -38,10 +38,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         installSplashScreen()
 
-        // Request location permission
+        // Request location and notification permissions
         requestLocationPermission()
-
-        // Request notification permission
         requestNotificationPermission()
 
         setContent {

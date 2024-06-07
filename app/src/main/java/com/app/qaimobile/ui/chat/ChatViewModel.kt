@@ -1,10 +1,16 @@
 package com.app.qaimobile.ui.chat
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Location
 import android.util.Log
+import androidx.core.content.ContextCompat
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.qaimobile.util.Constants.DEFAULT_MODEL
+import com.app.qaimobile.util.LocationUtils
 import com.app.qaimobile.data.datastore.DataStoreManager
 import com.app.qaimobile.data.datastore.PreferencesKeys
 import com.app.qaimobile.data.model.network.ConversationSessionDto
@@ -18,6 +24,7 @@ import com.app.qaimobile.data.remote.SendMessageRequest
 import com.app.qaimobile.domain.repository.ConversationRepository
 import com.app.qaimobile.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -26,7 +33,8 @@ import javax.inject.Inject
 class ChatViewModel @Inject constructor(
     private val conversationRepository: ConversationRepository,
     private val dataStoreManager: DataStoreManager,
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiEvent = MutableSharedFlow<ChatUiEvent>()
@@ -45,10 +53,6 @@ class ChatViewModel @Inject constructor(
     val selectedModel: StateFlow<String> = _selectedModel.asStateFlow()
 
     fun onEvent(event: ChatUiEvent) {
-
-
-
-
         when (event) {
             is ChatUiEvent.ShowError -> {
                 // Handle error events
@@ -125,8 +129,6 @@ class ChatViewModel @Inject constructor(
     }
 
     private fun sendMessage(conversationId: String?, message: String) {
-
-
         val modelMapping = mapOf(
             "gpt-4o" to "4o",
             "gpt-4-turbo-2024-04-09" to "4",
@@ -170,8 +172,28 @@ class ChatViewModel @Inject constructor(
                 val personality = dataStoreManager.getPersonality().firstOrNull() ?: ""
                 val selectedModel = dataStoreManager.getSelectedModel().firstOrNull() ?: DEFAULT_MODEL
 
-                // Create the SendMessageRequest with the string values
-                val request = SendMessageRequest(finalConversationId, message, personality, selectedModel)
+                // Get current location
+                val location = LocationUtils.getCurrentLocation(context)
+                val latitude = location?.latitude
+                val longitude = location?.longitude
+                val altitude = location?.altitude
+                val permissionStatus = if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    "granted"
+                } else {
+                    "denied"
+                }
+
+                // Create the SendMessageRequest with the string values and location data
+                val request = SendMessageRequest(
+                    finalConversationId,
+                    message,
+                    personality,
+                    selectedModel,
+                    latitude,
+                    longitude,
+                    altitude,
+                    permissionStatus
+                )
 
                 // Send the message to the server
                 val response = apiService.sendMessage(request)
