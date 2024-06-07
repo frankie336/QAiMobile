@@ -276,7 +276,6 @@ fun QComposerScreen(
                     )
 
 
-                    //When a user clicks the send button
                     IconButton(
                         onClick = {
                             if (message.isNotBlank()) {
@@ -285,13 +284,29 @@ fun QComposerScreen(
                                     message = ""
                                     keyboardController?.hide()
 
-                                    runStatusViewModel.pollRunStatus(selectedThreadId ?: "")
+                                    val timeoutMillis = 30000L // 30 seconds timeout
+                                    val startTime = System.currentTimeMillis()
+
+                                    while (System.currentTimeMillis() - startTime < timeoutMillis) {
+                                        runStatusViewModel.fetchRunStatus(selectedThreadId ?: "")
+                                        when (runStatusViewModel.status.value) {
+                                            "completed" -> break
+                                            "error" -> {
+                                                showToast(context, "Error fetching run status")
+                                                break
+                                            }
+                                        }
+                                        delay(1000)
+                                    }
+
+                                    if (runStatusViewModel.status.value != "completed") {
+                                        showToast(context, "Run status timed out")
+                                    }
                                 }
                             } else {
                                 showToast(context, "Please enter a message")
                             }
                         },
-
 
 
 

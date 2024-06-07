@@ -17,41 +17,30 @@ import com.app.qaimobile.ui.viewmodel.RunStatusViewModel
 fun AnimatedOrb(runStatusViewModel: RunStatusViewModel) {
     val status by runStatusViewModel.status.collectAsState()
 
+    val colorMap = mapOf(
+        "idle" to listOf(Color.Cyan, Color.Magenta),
+        "queued" to listOf(Color(0xFFFFB3B3), Color(0xFFFFE0B3)),
+        "failed" to listOf(Color(0xFFFFB3B3), Color(0xFFFFE0B3)),
+        "in_progress" to listOf(Color(0xFFFFCC66), Color(0xFFB3FFB3)),
+        "completed" to listOf(Color(0xFFB3FFB3), Color(0xFFD9D9D9)),
+        "cancelled" to listOf(Color(0xFFD9D9D9), Color(0xFFFFB3B3)),
+        "expired" to listOf(Color(0xFFD9D9D9), Color(0xFFFFB3B3))
+    )
+
+    val colors = colorMap[status] ?: colorMap["idle"]!!
+
     val infiniteTransition = rememberInfiniteTransition()
-
-    // Default colors for steady state
-    val defaultColor1 = Color.Cyan
-    val defaultColor2 = Color.Magenta
-
-    // Colors based on status
-    val color1 = when (status) {
-        "queued", "failed" -> Color(0xFFFFB3B3) // Pastel Red
-        "in_progress" -> Color(0xFFFFCC66) // Pastel Orange
-        "completed" -> Color(0xFFB3FFB3) // Pastel Green
-        "cancelled", "expired" -> Color(0xFFD9D9D9) // Pastel Gray
-        else -> defaultColor1 // Default to steady state colors
-    }
-
-    val color2 = when (status) {
-        "queued", "failed" -> Color(0xFFFFE0B3) // Pastel Orange
-        "in_progress" -> Color(0xFFB3FFB3) // Pastel Green
-        "completed" -> Color(0xFFD9D9D9) // Pastel Gray
-        "cancelled", "expired" -> Color(0xFFFFB3B3) // Pastel Red
-        else -> defaultColor2 // Default to steady state colors
-    }
-
-    // Determine the colors based on the status
     val animatedColor1 by infiniteTransition.animateColor(
-        initialValue = if (status == "idle") defaultColor1 else color1,
-        targetValue = if (status == "idle") defaultColor2 else color2,
+        initialValue = colors[0],
+        targetValue = colors[1],
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 2000, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
         )
     )
     val animatedColor2 by infiniteTransition.animateColor(
-        initialValue = if (status == "idle") defaultColor2 else color2,
-        targetValue = if (status == "idle") defaultColor1 else color1,
+        initialValue = colors[1],
+        targetValue = colors[0],
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 2000, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
