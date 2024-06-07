@@ -165,31 +165,24 @@ fun QComposerScreen(
                                 expanded = false
                             }
                         )
-                        DropdownMenuItem(
-                            text = { Text("Models", color = Color.Gray) },
-                            onClick = {
-                                expanded = false
-                            }
-                        )
+
+
                         DropdownMenuItem(
                             text = { Text("Profile", color = Color.Gray) },
                             onClick = {
                                 expanded = false
                             }
                         )
+
                         DropdownMenuItem(
-                            text = { Text("Select Personality", color = Color.Gray) },
+                            text = { Text("Personality", color = Color.Gray) },
                             onClick = {
                                 expanded = false
                                 navHostController.navigate(Destinations.PERSONALITY_SELECTION_ROUTE)
                             }
                         )
-                        DropdownMenuItem(
-                            text = { Text("Logout", color = Color.Gray) },
-                            onClick = {
-                                expanded = false
-                            }
-                        )
+
+
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
