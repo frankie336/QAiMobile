@@ -300,7 +300,7 @@ fun QComposerScreen(
                                     }
 
                                     if (runStatusViewModel.status.value != "completed") {
-                                        showToast(context, "Run status timed out")
+                                        //showToast(context, "Run status timed out")
                                     }
                                 }
                             } else {
