@@ -3,12 +3,13 @@ package com.app.qaimobile.ui.chat
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.location.Location
+import android.media.MediaPlayer
 import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.qaimobile.R
 import com.app.qaimobile.util.Constants.DEFAULT_MODEL
 import com.app.qaimobile.util.LocationUtils
 import com.app.qaimobile.data.datastore.DataStoreManager
@@ -52,6 +53,12 @@ class ChatViewModel @Inject constructor(
     private val _selectedModel = MutableStateFlow<String>(DEFAULT_MODEL) // Default model
     val selectedModel: StateFlow<String> = _selectedModel.asStateFlow()
 
+    private val mediaPlayer: MediaPlayer
+
+    init {
+        mediaPlayer = MediaPlayer.create(context, R.raw.notification_sound)
+    }
+
     fun onEvent(event: ChatUiEvent) {
         when (event) {
             is ChatUiEvent.ShowError -> {
@@ -79,6 +86,10 @@ class ChatViewModel @Inject constructor(
                 // Handle success events
             }
         }
+    }
+
+    private fun playNotificationSound() {
+        mediaPlayer.start()
     }
 
     fun fetchConversations() {
@@ -237,6 +248,7 @@ class ChatViewModel @Inject constructor(
                     Log.d("ChatViewModel", "Conversation ID or Thread ID is null or empty")
                 }
             }
+            playNotificationSound()
         }
     }
 
