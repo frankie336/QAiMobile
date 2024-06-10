@@ -1,15 +1,23 @@
 package com.app.qaimobile.ui.chat
 
 import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.util.Log
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.qaimobile.R
+import com.app.qaimobile.ui.MainActivity
 import com.app.qaimobile.util.Constants.DEFAULT_MODEL
 import com.app.qaimobile.util.LocationUtils
 import com.app.qaimobile.data.datastore.DataStoreManager
@@ -59,7 +67,6 @@ class ChatViewModel @Inject constructor(
     val urlContent: StateFlow<String?> = _urlContent
 
     private val mediaPlayer: MediaPlayer
-
     private val client = OkHttpClient()
 
     init {
@@ -97,6 +104,41 @@ class ChatViewModel @Inject constructor(
 
     private fun playNotificationSound() {
         mediaPlayer.start()
+    }
+
+    private fun showNotification(message: String) {
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent: PendingIntent = PendingIntent.getActivity(
+            context, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val builder = NotificationCompat.Builder(context, "message_channel")
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("New Message")
+            .setContentText(message)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+
+        with(NotificationManagerCompat.from(context)) {
+            if (ActivityCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // Requesting the permission if it's not granted
+                ActivityCompat.requestPermissions(
+                    context as MainActivity, // Assuming context is an instance of MainActivity
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    0
+                )
+                return
+            }
+            notify(0, builder.build())
+        }
     }
 
     fun fetchConversations() {
@@ -256,6 +298,7 @@ class ChatViewModel @Inject constructor(
                 }
             }
             playNotificationSound()
+            showNotification(message)
         }
     }
 
