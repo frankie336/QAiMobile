@@ -8,24 +8,21 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
 
 fun parseMarkdownContent(content: String): AnnotatedString {
     return buildAnnotatedString {
         val lines = content.split("\n")
         var inCodeBlock = false
-        var language = ""
 
         for (line in lines) {
             when {
                 line.startsWith("```") -> {
                     if (inCodeBlock) {
-                        // End of code block
                         inCodeBlock = false
                     } else {
-                        // Start of code block
                         inCodeBlock = true
-                        language = line.removePrefix("```")
                     }
                 }
                 inCodeBlock -> {
@@ -33,8 +30,8 @@ fun parseMarkdownContent(content: String): AnnotatedString {
                     addStyle(
                         style = SpanStyle(
                             fontFamily = FontFamily.Monospace,
-                            background = Color(0xFF333333), // Dark background color
-                            color = Color.White // White text color
+                            background = Color(0xFF333333),
+                            color = Color.White
                         ),
                         start = length - line.length,
                         end = length
@@ -120,7 +117,22 @@ fun parseMarkdownContent(content: String): AnnotatedString {
                     append(line.replaceFirst(Regex("^[-*]\\s"), "• "))
                 }
                 else -> {
-                    append(line)
+                    val urlRegex = Regex("https?://\\S+")
+                    var lastIndex = 0
+
+                    urlRegex.findAll(line).forEach { result ->
+                        append(line.substring(lastIndex, result.range.first))
+                        pushStringAnnotation(
+                            tag = "URL",
+                            annotation = result.value
+                        )
+                        withStyle(style = SpanStyle(color = Color.Blue, textDecoration = TextDecoration.Underline)) {
+                            append(result.value)
+                        }
+                        pop()
+                        lastIndex = result.range.last + 1
+                    }
+                    append(line.substring(lastIndex))
                 }
             }
             if (!inCodeBlock) {

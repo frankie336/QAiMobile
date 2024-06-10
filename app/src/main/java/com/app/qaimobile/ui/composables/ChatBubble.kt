@@ -1,4 +1,3 @@
-// ui/composables/ChatBubble.kt
 package com.app.qaimobile.ui.composables
 
 import androidx.compose.foundation.Image
@@ -6,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -25,6 +26,7 @@ fun ChatBubble(message: Message) {
     val isUser = message.role == "user"
     val bubbleColor = if (isUser) Color(0xFFD0EBFE) else Color(0xFFE1F5FE)
     val padding = if (isUser) PaddingValues(start = 40.dp, end = 8.dp, top = 8.dp, bottom = 8.dp) else PaddingValues(start = 8.dp, end = 40.dp, top = 8.dp, bottom = 8.dp)
+    val uriHandler = LocalUriHandler.current
 
     Row(
         modifier = Modifier
@@ -67,10 +69,16 @@ fun ChatBubble(message: Message) {
                                 color = Color.Black
                             )
                         } else {
-                            Text(
-                                text = parseMarkdownContent(text),
+                            val annotatedString = parseMarkdownContent(text)
+                            ClickableText(
+                                text = annotatedString,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = Color.Black
+                                onClick = { offset ->
+                                    annotatedString.getStringAnnotations(tag = "URL", start = offset, end = offset)
+                                        .firstOrNull()?.let { annotation ->
+                                            uriHandler.openUri(annotation.item)
+                                        }
+                                }
                             )
                         }
                     }
