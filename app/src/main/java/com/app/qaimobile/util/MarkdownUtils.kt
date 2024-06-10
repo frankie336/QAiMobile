@@ -8,21 +8,24 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
 
 fun parseMarkdownContent(content: String): AnnotatedString {
     return buildAnnotatedString {
         val lines = content.split("\n")
         var inCodeBlock = false
+        var language = ""
 
         for (line in lines) {
             when {
                 line.startsWith("```") -> {
                     if (inCodeBlock) {
+                        // End of code block
                         inCodeBlock = false
                     } else {
+                        // Start of code block
                         inCodeBlock = true
+                        language = line.removePrefix("```")
                     }
                 }
                 inCodeBlock -> {
@@ -30,8 +33,8 @@ fun parseMarkdownContent(content: String): AnnotatedString {
                     addStyle(
                         style = SpanStyle(
                             fontFamily = FontFamily.Monospace,
-                            background = Color(0xFF333333),
-                            color = Color.White
+                            background = Color(0xFF333333), // Dark background color
+                            color = Color.White // White text color
                         ),
                         start = length - line.length,
                         end = length
@@ -116,23 +119,35 @@ fun parseMarkdownContent(content: String): AnnotatedString {
                 line.startsWith("- ") || line.startsWith("* ") -> {
                     append(line.replaceFirst(Regex("^[-*]\\s"), "• "))
                 }
-                else -> {
-                    val urlRegex = Regex("https?://\\S+")
-                    var lastIndex = 0
+                line.contains(Regex("\\[(.*?)\\]\\((.*?)\\)")) -> {
+                    val annotatedString = buildAnnotatedString {
+                        val regex = Regex("\\[(.*?)\\]\\((.*?)\\)")
+                        val matches = regex.findAll(line)
+                        var currentIndex = 0
 
-                    urlRegex.findAll(line).forEach { result ->
-                        append(line.substring(lastIndex, result.range.first))
-                        pushStringAnnotation(
-                            tag = "URL",
-                            annotation = result.value
-                        )
-                        withStyle(style = SpanStyle(color = Color.Blue, textDecoration = TextDecoration.Underline)) {
-                            append(result.value)
+                        for (match in matches) {
+                            val (displayText, url) = match.destructured
+                            append(line.substring(currentIndex, match.range.first))
+                            append(displayText)
+                            addStyle(
+                                style = SpanStyle(color = Color.Blue, textDecoration = TextDecoration.Underline),
+                                start = length - displayText.length,
+                                end = length
+                            )
+                            addStringAnnotation(
+                                tag = "URL",
+                                annotation = url,
+                                start = length - displayText.length,
+                                end = length
+                            )
+                            currentIndex = match.range.last + 1
                         }
-                        pop()
-                        lastIndex = result.range.last + 1
+                        append(line.substring(currentIndex))
                     }
-                    append(line.substring(lastIndex))
+                    append(annotatedString)
+                }
+                else -> {
+                    append(line)
                 }
             }
             if (!inCodeBlock) {

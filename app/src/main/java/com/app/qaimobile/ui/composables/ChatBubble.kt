@@ -1,5 +1,8 @@
 package com.app.qaimobile.ui.composables
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -10,23 +13,31 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.app.qaimobile.data.model.network.Message
 import com.app.qaimobile.util.parseMarkdownContent
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.net.URL
 
 @Composable
 fun ChatBubble(message: Message) {
     val isUser = message.role == "user"
     val bubbleColor = if (isUser) Color(0xFFD0EBFE) else Color(0xFFE1F5FE)
     val padding = if (isUser) PaddingValues(start = 40.dp, end = 8.dp, top = 8.dp, bottom = 8.dp) else PaddingValues(start = 8.dp, end = 40.dp, top = 8.dp, bottom = 8.dp)
-    val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current
 
     Row(
         modifier = Modifier
@@ -63,10 +74,12 @@ fun ChatBubble(message: Message) {
                         val imageUrl = extractImageUrl(text)
                         if (imageUrl != null) {
                             ImageFromUrl(url = imageUrl, modifier = Modifier.fillMaxWidth().height(200.dp))
-                            Text(
+                            ClickableText(
                                 text = parseMarkdownContent(text.replace(imageUrl, "").trim()),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.Black
+                                onClick = { offset ->
+                                    handleUrlClicks(context, parseMarkdownContent(text.replace(imageUrl, "").trim()), offset)
+                                },
+                                style = MaterialTheme.typography.bodyMedium.copy(color = Color.Black)
                             )
                         } else {
                             val annotatedString = parseMarkdownContent(text)
@@ -76,7 +89,7 @@ fun ChatBubble(message: Message) {
                                 onClick = { offset ->
                                     annotatedString.getStringAnnotations(tag = "URL", start = offset, end = offset)
                                         .firstOrNull()?.let { annotation ->
-                                            uriHandler.openUri(annotation.item)
+                                            handleUrlClicks(context, annotatedString, offset)
                                         }
                                 }
                             )
@@ -86,6 +99,40 @@ fun ChatBubble(message: Message) {
             }
         }
     }
+}
+
+@Composable
+fun UrlContent(url: String) {
+    val (content, setContent) = remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(url) {
+        val fetchedContent = fetchUrlContent(url)
+        setContent(fetchedContent)
+    }
+
+    content?.let {
+        Text(text = it, style = MaterialTheme.typography.bodyMedium, color = Color.Black)
+    } ?: run {
+        Text(text = "Loading content...", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+    }
+}
+
+suspend fun fetchUrlContent(url: String): String {
+    return withContext(Dispatchers.IO) {
+        try {
+            URL(url).readText()
+        } catch (e: Exception) {
+            "Failed to load content"
+        }
+    }
+}
+
+private fun handleUrlClicks(context: Context, text: AnnotatedString, offset: Int) {
+    text.getStringAnnotations(tag = "URL", start = offset, end = offset)
+        .firstOrNull()?.let { annotation ->
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(annotation.item))
+            context.startActivity(intent)
+        }
 }
 
 fun extractImageUrl(text: String): String? {

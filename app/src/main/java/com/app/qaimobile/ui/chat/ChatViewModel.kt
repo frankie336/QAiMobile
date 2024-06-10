@@ -28,6 +28,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import javax.inject.Inject
 
 @HiltViewModel
@@ -53,7 +55,12 @@ class ChatViewModel @Inject constructor(
     private val _selectedModel = MutableStateFlow<String>(DEFAULT_MODEL) // Default model
     val selectedModel: StateFlow<String> = _selectedModel.asStateFlow()
 
+    private val _urlContent = MutableStateFlow<String?>(null)
+    val urlContent: StateFlow<String?> = _urlContent
+
     private val mediaPlayer: MediaPlayer
+
+    private val client = OkHttpClient()
 
     init {
         mediaPlayer = MediaPlayer.create(context, R.raw.notification_sound)
@@ -292,6 +299,22 @@ class ChatViewModel @Inject constructor(
             val savedModel = dataStoreManager.getSelectedModel()
             savedModel?.let {
                 _selectedModel.value = it.toString()
+            }
+        }
+    }
+
+    fun fetchUrlContent(url: String) {
+        viewModelScope.launch {
+            try {
+                val request = Request.Builder().url(url).build()
+                val response = client.newCall(request).execute()
+                if (response.isSuccessful) {
+                    _urlContent.value = response.body?.string()
+                } else {
+                    Log.e("ChatViewModel", "Failed to fetch URL content: ${response.message}")
+                }
+            } catch (e: Exception) {
+                Log.e("ChatViewModel", "Error fetching URL content: ${e.localizedMessage}")
             }
         }
     }
