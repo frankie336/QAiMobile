@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Location
 import android.media.MediaPlayer
 import android.util.Log
 import androidx.core.app.ActivityCompat
@@ -19,7 +20,6 @@ import androidx.lifecycle.viewModelScope
 import com.app.qaimobile.R
 import com.app.qaimobile.ui.MainActivity
 import com.app.qaimobile.util.Constants.DEFAULT_MODEL
-import com.app.qaimobile.util.LocationUtils
 import com.app.qaimobile.data.datastore.DataStoreManager
 import com.app.qaimobile.data.datastore.PreferencesKeys
 import com.app.qaimobile.data.model.network.ConversationSessionDto
@@ -32,6 +32,7 @@ import com.app.qaimobile.data.remote.ApiService
 import com.app.qaimobile.data.remote.SendMessageRequest
 import com.app.qaimobile.domain.repository.ConversationRepository
 import com.app.qaimobile.util.Result
+import com.app.qaimobile.util.location.LocationManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
@@ -66,11 +67,18 @@ class ChatViewModel @Inject constructor(
     private val _urlContent = MutableStateFlow<String?>(null)
     val urlContent: StateFlow<String?> = _urlContent
 
+    private val _currentLocation = MutableStateFlow<Location?>(null)
+    val currentLocation: StateFlow<Location?> = _currentLocation
+
     private val mediaPlayer: MediaPlayer
     private val client = OkHttpClient()
 
+    @Inject
+    lateinit var locationManager: LocationManager
+
     init {
         mediaPlayer = MediaPlayer.create(context, R.raw.notification_sound)
+        startLocationUpdates()
     }
 
     fun onEvent(event: ChatUiEvent) {
@@ -233,7 +241,7 @@ class ChatViewModel @Inject constructor(
                 val selectedModel = dataStoreManager.getSelectedModel().firstOrNull() ?: DEFAULT_MODEL
 
                 // Get current location
-                val location = LocationUtils.getCurrentLocation(context)
+                val location = _currentLocation.value
                 val latitude = location?.latitude
                 val longitude = location?.longitude
                 val altitude = location?.altitude
@@ -275,6 +283,12 @@ class ChatViewModel @Inject constructor(
 
                             // Update selectedConversationMessages with the response
                             selectConversation(receivedConversationId)
+
+                            // Show notification with Q's message
+                            val assistantMessage = responseBody.messages.firstOrNull { it.role == "assistant" }
+                            if (assistantMessage != null) {
+                                showNotification(assistantMessage.content.firstOrNull()?.text?.value ?: "New message")
+                            }
                         } else {
                             Log.d("ChatViewModel", "Conversation ID or Thread ID is null or empty")
                         }
@@ -298,7 +312,6 @@ class ChatViewModel @Inject constructor(
                 }
             }
             playNotificationSound()
-            showNotification(message)
         }
     }
 
@@ -360,5 +373,28 @@ class ChatViewModel @Inject constructor(
                 Log.e("ChatViewModel", "Error fetching URL content: ${e.localizedMessage}")
             }
         }
+    }
+
+    private fun startLocationUpdates() {
+        viewModelScope.launch {
+            val token = dataStoreManager.getAccessToken().firstOrNull()
+            if (token != null) {
+                locationManager.startLocationUpdates(token) { location ->
+                    _currentLocation.value = location
+                }
+            } else {
+                Log.e("ChatViewModel", "Access token is null")
+            }
+        }
+    }
+
+    private fun stopLocationUpdates() {
+        locationManager.stopLocationUpdates()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        stopLocationUpdates()
+        mediaPlayer.release()
     }
 }

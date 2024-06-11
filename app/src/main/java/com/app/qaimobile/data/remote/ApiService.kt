@@ -1,12 +1,18 @@
 package com.app.qaimobile.data.remote
 
+
+
+import com.app.qaimobile.data.model.network.Message
 import com.app.qaimobile.data.model.network.ConversationSessionDto
+import com.app.qaimobile.data.model.network.LocationUpdateRequest
+import com.app.qaimobile.data.model.network.LocationUpdateResponse
 import com.app.qaimobile.data.model.network.auth.LoginRequest
 import com.app.qaimobile.data.model.network.auth.LoginResponse
 import com.google.gson.annotations.SerializedName
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Query
 
@@ -52,8 +58,22 @@ interface ApiService {
      */
     @POST("bp_common/session-create")
     suspend fun createSession(): Response<CreateSessionResponse>
+
+    /**
+     * This function is used to update the user's location.
+     * @param locationUpdateRequest The location update request object.
+     * @return The response indicating the result of the update operation.
+     */
+    @POST("bp_location/update_current_user_location")
+    suspend fun updateLocation(
+        @Body locationUpdateRequest: LocationUpdateRequest,
+        @Header("Authorization") token: String
+    ): Response<LocationUpdateResponse>
 }
 
+/**
+ * Data class representing the response from sending a message.
+ */
 /**
  * Data class representing the response from sending a message.
  */
@@ -61,7 +81,9 @@ data class SendMessageResponse(
     @SerializedName("conversation_id")
     val conversationId: String,
     @SerializedName("thread_id")
-    val threadId: String
+    val threadId: String,
+    @SerializedName("messages")
+    val messages: List<Message>
 )
 
 /**
