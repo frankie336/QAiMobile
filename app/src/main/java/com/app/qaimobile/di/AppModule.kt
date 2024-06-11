@@ -4,6 +4,7 @@ package com.app.qaimobile.di
 import com.app.qaimobile.util.Constants.BASE_URL
 import android.content.Context
 import com.app.qaimobile.data.remote.ApiService
+import com.app.qaimobile.util.location.LocationManager
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
@@ -33,7 +34,7 @@ object AppModule {
     fun provideRetrofit(client: OkHttpClient, gson: Gson): Retrofit {
         return Retrofit.Builder()
             .client(client)
-            .baseUrl(BASE_URL) // Emulator's way to access host's localhost
+            .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
     }
@@ -47,4 +48,10 @@ object AppModule {
     @Provides
     @Singleton
     fun provideGson(): Gson = GsonBuilder().create()
+
+    @Provides
+    @Singleton
+    fun provideLocationManager(@ApplicationContext context: Context, apiService: ApiService): LocationManager {
+        return LocationManager(context, apiService)
+    }
 }

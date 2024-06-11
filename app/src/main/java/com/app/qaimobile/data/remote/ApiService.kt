@@ -67,7 +67,7 @@ interface ApiService {
     @POST("bp_location/update_current_user_location")
     suspend fun updateLocation(
         @Body locationUpdateRequest: LocationUpdateRequest,
-        @Header("Authorization") token: String
+        //@Header("Authorization") token: String
     ): Response<LocationUpdateResponse>
 }
 

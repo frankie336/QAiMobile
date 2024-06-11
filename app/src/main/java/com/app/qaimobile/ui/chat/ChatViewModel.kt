@@ -79,6 +79,14 @@ class ChatViewModel @Inject constructor(
     init {
         mediaPlayer = MediaPlayer.create(context, R.raw.notification_sound)
         startLocationUpdates()
+
+        viewModelScope.launch {
+            // Observe access token changes
+            dataStoreManager.getAccessToken().filterNotNull().collect { newToken ->
+                // Update the location manager with the new token
+                locationManager.updateAccessToken(newToken)
+            }
+        }
     }
 
     fun onEvent(event: ChatUiEvent) {
@@ -377,7 +385,7 @@ class ChatViewModel @Inject constructor(
 
     private fun startLocationUpdates() {
         viewModelScope.launch {
-            val token = dataStoreManager.getAccessToken().firstOrNull()
+            val token = dataStoreManager.getAccessToken().first()
             if (token != null) {
                 locationManager.startLocationUpdates(token) { location ->
                     _currentLocation.value = location

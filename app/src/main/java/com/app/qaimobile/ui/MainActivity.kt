@@ -185,7 +185,7 @@ class MainActivity : ComponentActivity() {
 
             lifecycleScope.launch {
                 try {
-                    val response = apiService.updateLocation(locationUpdateRequest, "Bearer $token")
+                    val response = apiService.updateLocation(locationUpdateRequest)
                     if (response.isSuccessful) {
                         Log.d("MainActivity", "Location updated on server: ${response.body()?.message}")
                     } else {

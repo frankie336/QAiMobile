@@ -28,15 +28,17 @@ class LocationManager @Inject constructor(
 
     private var locationCallback: LocationCallback? = null
     private var onLocationUpdated: ((Location) -> Unit)? = null
+    private var accessToken: String? = null
 
     fun startLocationUpdates(token: String, callback: (Location) -> Unit) {
+        accessToken = token
         onLocationUpdated = callback
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 locationResult.lastLocation?.let { location ->
                     onLocationUpdated?.invoke(location)
                     Log.d("LocationManager", "Location updated: $location")
-                    sendLocationToBackend(token, location)
+                    sendLocationToBackend(accessToken!!, location)
                 }
             }
         }
@@ -62,7 +64,10 @@ class LocationManager @Inject constructor(
         )
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = apiService.updateLocation(locationUpdateRequest, "Bearer $token")
+                val formattedToken = if (token.startsWith("Bearer ")) token else "Bearer $token"
+                Log.d("LocationManager", "Formatted token: $formattedToken")
+                Log.d("LocationManager", "Sending location update with token: $formattedToken")
+                val response = apiService.updateLocation(locationUpdateRequest)
                 if (response.isSuccessful) {
                     Log.d("LocationManager", "Location update sent successfully")
                 } else {
@@ -81,5 +86,16 @@ class LocationManager @Inject constructor(
         }
         locationCallback = null
         onLocationUpdated = null
+    }
+
+    fun updateAccessToken(newToken: String) {
+        accessToken = newToken
+        Log.d("LocationManager", "Access token updated: $newToken")
+        // Stop current location updates
+        stopLocationUpdates()
+        // Restart location updates with the new token
+        if (onLocationUpdated != null) {
+            startLocationUpdates(newToken, onLocationUpdated!!)
+        }
     }
 }
