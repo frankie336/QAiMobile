@@ -6,6 +6,7 @@ import com.app.qaimobile.data.model.network.Message
 import com.app.qaimobile.data.model.network.ConversationSessionDto
 import com.app.qaimobile.data.model.network.LocationUpdateRequest
 import com.app.qaimobile.data.model.network.LocationUpdateResponse
+import com.app.qaimobile.data.model.network.FileMetadata
 import com.app.qaimobile.data.model.network.auth.LoginRequest
 import com.app.qaimobile.data.model.network.auth.LoginResponse
 import com.google.gson.annotations.SerializedName
@@ -69,6 +70,19 @@ interface ApiService {
         @Body locationUpdateRequest: LocationUpdateRequest,
         //@Header("Authorization") token: String
     ): Response<LocationUpdateResponse>
+
+
+    /**
+     * This function is used to get the list of files with metadata.
+     * @return The response containing the list of files.
+     */
+    @GET("bp_vector_store/files")
+    suspend fun getFiles(
+        @Header("Authorization") token: String
+    ): Response<FileListResponse>
+
+
+
 }
 
 /**
@@ -99,3 +113,12 @@ data class RunStatusResponse(
 data class CreateSessionResponse(
     val user_id: String
 )
+
+/**
+ * Data class representing the response from getting the list of files.
+ */
+data class FileListResponse(
+    @SerializedName("files")
+    val files: List<FileMetadata>
+)
+

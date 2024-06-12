@@ -73,6 +73,7 @@ dependencies {
     implementation(libs.androidx.adapters)
     implementation(libs.androidx.compose.material)
     implementation("androidx.compose.material:material-icons-extended:1.4.0")
+    implementation(libs.androidx.runtime.livedata)
 
     // DataStore Preferences dependency
     testImplementation(libs.junit)
@@ -123,6 +124,13 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:20.0.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.1.1")
+
+    //Vector files
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.5.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1")
+
+
+
 }
 
 ksp {
