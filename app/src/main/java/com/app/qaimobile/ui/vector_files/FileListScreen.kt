@@ -3,6 +3,8 @@ package com.app.qaimobile.ui.vector_files
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
@@ -11,12 +13,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.app.qaimobile.data.model.network.FileMetadata
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FileListScreen(fileViewModel: FileViewModel = viewModel()) {
+fun FileListScreen(navController: NavController, fileViewModel: FileViewModel = viewModel()) {
     val coroutineScope = rememberCoroutineScope()
     val filesState = fileViewModel.files.observeAsState(initial = emptyList())
 
@@ -30,7 +33,12 @@ fun FileListScreen(fileViewModel: FileViewModel = viewModel()) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Files") }
+                title = { Text("Files") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                }
             )
         }
     ) { paddingValues ->

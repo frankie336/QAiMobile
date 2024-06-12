@@ -8,4 +8,5 @@ object Destinations {
     const val FORGOT_PASSWORD_ROUTE = "forgot_password"
     const val CHAT_ROUTE = "chat"
     const val PERSONALITY_SELECTION_ROUTE = "personality_selection"
+    const val FILE_LIST_ROUTE = "file_list"  // New destination
 }

@@ -157,6 +157,7 @@ fun QComposerScreen(
                             text = { Text("Files", color = Color.Gray) },
                             onClick = {
                                 expanded = false
+                                navHostController.navigate(Destinations.FILE_LIST_ROUTE) // Navigate to FileListScreen
                             }
                         )
                         DropdownMenuItem(

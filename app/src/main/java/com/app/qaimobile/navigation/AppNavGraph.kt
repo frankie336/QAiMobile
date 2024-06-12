@@ -14,8 +14,10 @@ import com.app.qaimobile.ui.home.HomeScreen
 import com.app.qaimobile.ui.home.HomeViewModel
 import com.app.qaimobile.ui.login.LoginScreen
 import com.app.qaimobile.ui.login.LoginViewModel
-import com.app.qaimobile.ui.settings.PersonalitySelectionScreen // Import the PersonalitySelectionScreen
+import com.app.qaimobile.ui.settings.PersonalitySelectionScreen
 import com.app.qaimobile.ui.splash.SplashScreen
+import com.app.qaimobile.ui.vector_files.FileListScreen
+import com.app.qaimobile.ui.vector_files.FileViewModel
 
 fun NavGraphBuilder.appNavGraph(navController: NavController, startDestination: String) {
     navigation(route = APP_NAV_GRAPH_ROUTE, startDestination = startDestination) {
@@ -65,6 +67,11 @@ fun NavGraphBuilder.appNavGraph(navController: NavController, startDestination: 
             PersonalitySelectionScreen(
                 navController = navController
             )
+        }
+
+        composable(Destinations.FILE_LIST_ROUTE) {  // New composable
+            val fileViewModel: FileViewModel = hiltViewModel()
+            FileListScreen(navController = navController, fileViewModel = fileViewModel)
         }
     }
 }
