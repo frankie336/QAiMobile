@@ -3,12 +3,20 @@ package com.app.qaimobile.data.model.network
 import com.google.gson.annotations.SerializedName
 
 data class FileMetadata(
-    @SerializedName("file_id")
+    @SerializedName("id")
     val fileId: String,
-    @SerializedName("file_name")
+    @SerializedName("filename")
     val fileName: String,
-    @SerializedName("upload_date")
-    val uploadDate: String,
-    @SerializedName("size")
-    val size: Long
+    @SerializedName("bytes")
+    val size: Int,
+    @SerializedName("created_at")
+    val uploadDate: Long,
+    @SerializedName("object")
+    val objectType: String,
+    @SerializedName("purpose")
+    val purpose: String,
+    @SerializedName("status")
+    val status: String,
+    @SerializedName("status_details")
+    val statusDetails: String?
 )

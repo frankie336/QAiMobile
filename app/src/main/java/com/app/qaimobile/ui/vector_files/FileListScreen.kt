@@ -1,16 +1,23 @@
 package com.app.qaimobile.ui.vector_files
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -33,15 +40,24 @@ fun FileListScreen(navController: NavController, fileViewModel: FileViewModel = 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Files") },
+                title = { Text("Vector store") },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { /* Add sort functionality here */ }) {
+                        Icon(Icons.Default.Sort, contentDescription = "Sort")
+                    }
+                    IconButton(onClick = { /* Add grid/list toggle functionality here */ }) {
+                        Icon(Icons.Default.ViewList, contentDescription = "View List")
                     }
                 }
             )
         }
     ) { paddingValues ->
+        Log.d("FileListScreen", "Rendering file list screen with padding values: $paddingValues")
         LazyColumn(
             contentPadding = paddingValues,
             modifier = Modifier
@@ -49,6 +65,7 @@ fun FileListScreen(navController: NavController, fileViewModel: FileViewModel = 
                 .padding(16.dp)
         ) {
             items(filesState.value) { file ->
+                Log.d("FileListScreen", "Rendering file item: ${file.fileName}")
                 FileItem(file = file)
             }
         }
@@ -57,20 +74,30 @@ fun FileListScreen(navController: NavController, fileViewModel: FileViewModel = 
 
 @Composable
 fun FileItem(file: FileMetadata) {
-    Card(
+    Log.d("FileItem", "Displaying file: $file")
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = "File Name: ${file.fileName}", style = MaterialTheme.typography.headlineSmall)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "File ID: ${file.fileId}", style = MaterialTheme.typography.bodyLarge)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "Upload Date: ${file.uploadDate}", style = MaterialTheme.typography.bodyLarge)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "Size: ${file.size} bytes", style = MaterialTheme.typography.bodyLarge)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Default.Description,
+                contentDescription = "File Icon",
+                modifier = Modifier.size(40.dp)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column {
+                Text(text = file.fileName, style = MaterialTheme.typography.bodyLarge, color = Color.Black)
+                Text(text = "${file.size} bytes", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                Text(text = "Uploaded: ${file.uploadDate}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                Text(text = "Status: ${file.status}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+            }
+        }
+        IconButton(onClick = { /* Add functionality for more options */ }) {
+            Icon(Icons.Default.MoreVert, contentDescription = "More Options")
         }
     }
 }

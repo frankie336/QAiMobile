@@ -27,11 +27,17 @@ class FileViewModel @Inject constructor(
             val token = dataStoreManager.getAccessToken().firstOrNull()
             if (token != null) {
                 //val formattedToken = if (token.startsWith("Bearer ")) token else "Bearer $token"
-                Log.d("FileViewModel", "Formatted token:")
+                Log.d("FileViewModel", "Formatted token: $token")
                 try {
                     val response = apiService.getFiles(token)
                     if (response.isSuccessful) {
-                        _files.value = response.body()?.files ?: emptyList()
+                        Log.d("FileViewModel", "Response is successful")
+                        response.body()?.let {
+                            Log.d("FileViewModel", "Files retrieved: ${it.files.size}")
+                            _files.value = it.files
+                        } ?: run {
+                            Log.e("FileViewModel", "Response body is null")
+                        }
                     } else {
                         Log.e("FileViewModel", "Failed to fetch files: ${response.errorBody()?.string()}")
                         Log.e("FileViewModel", "Response headers: ${response.headers()}")
