@@ -1,17 +1,16 @@
 package com.app.qaimobile.ui.chat
 
+import android.content.Intent
 import android.content.res.Configuration
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.tween
+import android.provider.MediaStore
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,7 +22,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -39,6 +37,7 @@ import com.app.qaimobile.ui.composables.AnimatedOrb
 import com.app.qaimobile.ui.composables.ChatBubble
 import com.app.qaimobile.ui.composables.LoadingDialog
 import com.app.qaimobile.ui.home.ThreadsSidebar
+import com.app.qaimobile.ui.image_handling.ImageViewModel
 import com.app.qaimobile.ui.viewmodel.RunStatusViewModel
 import com.app.qaimobile.util.Constants.DEFAULT_MODEL
 import com.app.qaimobile.util.showToast
@@ -53,6 +52,7 @@ import kotlinx.coroutines.launch
 fun QComposerScreen(
     viewModel: ChatViewModel = hiltViewModel(),
     runStatusViewModel: RunStatusViewModel = hiltViewModel(),
+    imageViewModel: ImageViewModel = hiltViewModel(),
     uiEvent: SharedFlow<ChatUiEvent> = viewModel.uiEvent,
     navHostController: NavController,
     onEvent: (ChatUiEvent) -> Unit
@@ -77,10 +77,21 @@ fun QComposerScreen(
 
     var selectedThreadId by remember { mutableStateOf<String?>(null) }
 
-    var showBorder by remember { mutableStateOf(false) }
-
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    // Initialize image pickers
+    val selectImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK && result.data != null) {
+            imageViewModel.updateImageUri(result.data!!.data)
+        }
+    }
+
+    val captureImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            imageViewModel.imageUri?.let { /* Handle the captured image URI */ }
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.fetchConversations()
@@ -95,6 +106,7 @@ fun QComposerScreen(
                 is ChatUiEvent.SendMessage -> {}
             }
         }
+        imageViewModel.initialize(captureImageLauncher, selectImageLauncher)
     }
 
     LaunchedEffect(selectedMessages) {
@@ -175,7 +187,6 @@ fun QComposerScreen(
                             }
                         )
 
-
                         DropdownMenuItem(
                             text = { Text("Profile", color = Color.Gray) },
                             onClick = {
@@ -190,8 +201,6 @@ fun QComposerScreen(
                                 navHostController.navigate(Destinations.PERSONALITY_SELECTION_ROUTE)
                             }
                         )
-
-
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -201,7 +210,6 @@ fun QComposerScreen(
             )
         }
     ) { paddingValues ->
-        GlowingBorder(runStatusViewModel = runStatusViewModel, showBorder = showBorder)
         ConstraintLayout(
             modifier = Modifier
                 .fillMaxSize()
@@ -285,6 +293,21 @@ fun QComposerScreen(
                         keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
                     )
 
+                    IconButton(
+                        onClick = {
+                            selectImageLauncher.launch(Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI))
+                        },
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(color = Color(0xFFff6c00), shape = CircleShape)
+                            .padding(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Image,
+                            contentDescription = "Select Image",
+                            tint = Color.White
+                        )
+                    }
 
                     IconButton(
                         onClick = {
@@ -293,7 +316,6 @@ fun QComposerScreen(
                                     onEvent(ChatUiEvent.SendMessage(selectedThreadId ?: "", message))
                                     message = ""
                                     keyboardController?.hide()
-                                    showBorder = true
 
                                     val timeoutMillis = 30000L // 30 seconds timeout
                                     val startTime = System.currentTimeMillis()
@@ -301,12 +323,8 @@ fun QComposerScreen(
                                     while (System.currentTimeMillis() - startTime < timeoutMillis) {
                                         runStatusViewModel.fetchRunStatus(selectedThreadId ?: "")
                                         when (runStatusViewModel.status.value) {
-                                            "completed" -> {
-                                                showBorder = false
-                                                break
-                                            }
+                                            "completed" -> break
                                             "error" -> {
-                                                showBorder = false
                                                 showToast(context, "Error fetching run status")
                                                 break
                                             }
@@ -315,7 +333,6 @@ fun QComposerScreen(
                                     }
 
                                     if (runStatusViewModel.status.value != "completed") {
-                                        showBorder = false
                                         //showToast(context, "Run status timed out")
                                     }
                                 }
@@ -323,9 +340,6 @@ fun QComposerScreen(
                                 showToast(context, "Please enter a message")
                             }
                         },
-
-
-
                         modifier = Modifier
                             .size(40.dp)
                             .background(color = Color(0xFFff6c00), shape = CircleShape)
@@ -339,35 +353,6 @@ fun QComposerScreen(
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun GlowingBorder(runStatusViewModel: RunStatusViewModel, showBorder: Boolean) {
-    val status by runStatusViewModel.status.collectAsState()
-    val colorMap = mapOf(
-        "idle" to Color.Transparent,
-        "queued" to Color(0xFFFAFAD2),      // Pastel Yellow (Light Goldenrod Yellow)
-        "failed" to Color(0xFFFFA07A),      // Pastel Red (Light Salmon)
-        "in_progress" to Color(0xFFADD8E6), // Pastel Blue (Light Blue)
-        "completed" to Color(0xFF90EE90),   // Pastel Green (Light Green)
-        "cancelled" to Color(0xFFD3D3D3),   // Pastel Gray (Light Gray)
-        "expired" to Color(0xFFDA70D6)      // Pastel Purple (Orchid)
-    )
-
-    val color by animateColorAsState(
-        targetValue = colorMap[status] ?: Color.Transparent,
-        animationSpec = tween(durationMillis = 1000, easing = LinearEasing)
-    )
-
-    if (showBorder) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            drawRoundRect(
-                color = color,
-                size = size,
-                style = Stroke(width = 10f)
-            )
         }
     }
 }
