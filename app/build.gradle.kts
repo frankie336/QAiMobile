@@ -125,12 +125,12 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.1.1")
 
-    //Vector files
+    // Vector files
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.5.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1")
 
-
-
+    // FileProvider for image capture
+    implementation("androidx.core:core-ktx:1.7.0")
 }
 
 ksp {

@@ -1,6 +1,7 @@
 package com.app.qaimobile.ui
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -16,6 +17,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.app.qaimobile.data.model.network.LocationUpdateRequest
 import com.app.qaimobile.data.remote.ApiService
@@ -25,6 +27,7 @@ import com.app.qaimobile.navigation.appNavGraph
 import com.app.qaimobile.ui.destinations.HomeScreenDestination
 import com.app.qaimobile.ui.destinations.LoginScreenDestination
 import com.app.qaimobile.ui.destinations.SplashScreenDestination
+import com.app.qaimobile.ui.image_handling.ImageHandlingScreen
 import com.app.qaimobile.ui.theme.QAiMobileTheme
 import com.app.qaimobile.util.location.LocationManager
 import dagger.hilt.android.AndroidEntryPoint
@@ -76,6 +79,9 @@ class MainActivity : ComponentActivity() {
                     startDestination = APP_NAV_GRAPH_ROUTE,
                 ) {
                     appNavGraph(navController, SplashScreenDestination.route)
+                    composable("imageHandling") {
+                        ImageHandlingScreen()
+                    }
                 }
             }
         }

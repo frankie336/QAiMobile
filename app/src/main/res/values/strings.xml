@@ -17,11 +17,14 @@
     <string name="please_check_your_internet_connection">Please check your internet connection</string>
     <string name="slower_internet_connection">Slow internet connection</string>
     <string name="invalid_email_or_password">Invalid email or password</string>
-    <string name="unknown_error_occurred">An unknown error occurred</string> <!-- Corrected spelling -->
+    <string name="unknown_error_occurred">An unknown error occurred</string>
     <string name="something_went_wrong">Something went wrong</string>
     <string name="timeout_error">Timeout error</string>
     <string name="logged_out_successfully">Logged out successfully</string>
     <string name="no_browser_found">No browser found</string>
     <string name="remember_your_password">Remember your password?</string>
     <string name="log_in">Log in</string>
+    <string name="image_view_description">Image View</string>
+    <string name="capture_image">Capture Image</string>
+    <string name="select_image_from_gallery">Select Image from Gallery</string>
 </resources>
