@@ -80,7 +80,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     appNavGraph(navController, SplashScreenDestination.route)
                     composable("imageHandling") {
-                        ImageHandlingScreen()
+                        ImageHandlingScreen(apiService = apiService) // Pass the apiService instance
                     }
                 }
             }

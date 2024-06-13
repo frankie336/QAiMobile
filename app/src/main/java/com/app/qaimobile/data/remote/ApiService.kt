@@ -4,14 +4,9 @@ import com.app.qaimobile.data.model.network.*
 import com.app.qaimobile.data.model.network.auth.LoginRequest
 import com.app.qaimobile.data.model.network.auth.LoginResponse
 import com.google.gson.annotations.SerializedName
+import okhttp3.MultipartBody
 import retrofit2.Response
-import retrofit2.http.Body
-import retrofit2.http.DELETE
-import retrofit2.http.GET
-import retrofit2.http.Header
-import retrofit2.http.POST
-import retrofit2.http.Path
-import retrofit2.http.Query
+import retrofit2.http.*
 
 /**
  * ApiService is an interface that defines the endpoints of the API.
@@ -76,7 +71,6 @@ interface ApiService {
         //@Header("Authorization") token: String
     ): Response<FileListResponse>
 
-
     /**
      * This function is used to delete a file.
      * @param fileId The ID of the file to be deleted.
@@ -88,8 +82,22 @@ interface ApiService {
         @Path("fileId") fileId: String
     ): Response<DeleteFileResponse>
 
-
-
+    /**
+     * This function is used to upload files.
+     * @param files The list of files to upload.
+     * @param tabNames The list of tab names corresponding to the files.
+     * @param userId The ID of the user uploading the files.
+     * @param threadId The ID of the thread associated with the files (optional).
+     * @return The response indicating the result of the upload operation.
+     */
+    @Multipart
+    @POST("bp_files/q-file-upload")
+    suspend fun uploadFiles(
+        @Part files: List<MultipartBody.Part>,
+        @Part("tabNames") tabNames: List<String>,
+        @Part("userId") userId: String,
+        @Part("threadId") threadId: String?
+    ): Response<UploadFilesResponse>
 
 }
 
@@ -132,4 +140,12 @@ data class FileListResponse(
  */
 data class DeleteFileResponse(
     val message: String
+)
+
+/**
+ * Data class representing the response from uploading files.
+ */
+data class UploadFilesResponse(
+    val message: String,
+    val file_urls: List<String>
 )
