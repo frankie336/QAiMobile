@@ -71,7 +71,7 @@ interface ApiService {
      */
     @GET("bp_vector_store/files")
     suspend fun getFiles(
-        @Header("Authorization") token: String
+        //@Header("Authorization") token: String
     ): Response<FileListResponse>
 }
 

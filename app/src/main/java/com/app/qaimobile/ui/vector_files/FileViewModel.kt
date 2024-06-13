@@ -29,7 +29,7 @@ class FileViewModel @Inject constructor(
                 //val formattedToken = if (token.startsWith("Bearer ")) token else "Bearer $token"
                 Log.d("FileViewModel", "Formatted token: $token")
                 try {
-                    val response = apiService.getFiles(token)
+                    val response = apiService.getFiles()
                     if (response.isSuccessful) {
                         Log.d("FileViewModel", "Response is successful")
                         response.body()?.let {
