@@ -388,4 +388,13 @@ fun GlowingBorder(runStatusViewModel: RunStatusViewModel, showBorder: Boolean) {
         animationSpec = tween(durationMillis = 1000, easing = LinearEasing)
     )
 
+    if (showBorder) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            drawRoundRect(
+                color = color,
+                size = size,
+                style = Stroke(width = 10f)
+            )
+        }
+    }
 }
