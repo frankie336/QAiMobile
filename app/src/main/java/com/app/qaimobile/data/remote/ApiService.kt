@@ -6,9 +6,11 @@ import com.app.qaimobile.data.model.network.auth.LoginResponse
 import com.google.gson.annotations.SerializedName
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 /**
@@ -73,6 +75,22 @@ interface ApiService {
     suspend fun getFiles(
         //@Header("Authorization") token: String
     ): Response<FileListResponse>
+
+
+    /**
+     * This function is used to delete a file.
+     * @param fileId The ID of the file to be deleted.
+     * @return The response indicating the result of the delete operation.
+     */
+    @DELETE("bp_vector_store/files/{fileId}")
+    suspend fun deleteFile(
+        //@Header("Authorization") token: String,
+        @Path("fileId") fileId: String
+    ): Response<DeleteFileResponse>
+
+
+
+
 }
 
 /**
@@ -107,4 +125,11 @@ data class CreateSessionResponse(
 data class FileListResponse(
     @SerializedName("files")
     val files: List<FileMetadata>
+)
+
+/**
+ * Data class representing the response from deleting a file.
+ */
+data class DeleteFileResponse(
+    val message: String
 )

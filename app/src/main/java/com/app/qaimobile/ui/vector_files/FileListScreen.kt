@@ -1,3 +1,4 @@
+// FileListScreen.kt
 package com.app.qaimobile.ui.vector_files
 
 import android.util.Log
@@ -11,10 +12,8 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -66,15 +65,30 @@ fun FileListScreen(navController: NavController, fileViewModel: FileViewModel = 
         ) {
             items(filesState.value) { file ->
                 Log.d("FileListScreen", "Rendering file item: ${file.fileName}")
-                FileItem(file = file)
+                FileItem(file = file, onDelete = { fileId ->
+                    coroutineScope.launch {
+                        fileViewModel.deleteFile(fileId)
+                    }
+                })
             }
         }
     }
 }
 
 @Composable
-fun FileItem(file: FileMetadata) {
-    Log.d("FileItem", "Displaying file: $file")
+fun FileItem(file: FileMetadata, onDelete: (String) -> Unit) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    if (showDialog) {
+        DeleteConfirmationDialog(
+            onConfirm = {
+                onDelete(file.fileId)
+                showDialog = false
+            },
+            onDismiss = { showDialog = false }
+        )
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -96,8 +110,27 @@ fun FileItem(file: FileMetadata) {
                 Text(text = "Status: ${file.status}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
             }
         }
-        IconButton(onClick = { /* Add functionality for more options */ }) {
+        IconButton(onClick = { showDialog = true }) {
             Icon(Icons.Default.MoreVert, contentDescription = "More Options")
         }
     }
+}
+
+@Composable
+fun DeleteConfirmationDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "Delete File") },
+        text = { Text(text = "Are you sure you want to delete this file?") },
+        confirmButton = {
+            Button(onClick = onConfirm) {
+                Text("Delete")
+            }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }

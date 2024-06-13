@@ -1,3 +1,4 @@
+// FileViewModel.kt
 package com.app.qaimobile.ui.vector_files
 
 import android.util.Log
@@ -26,27 +27,35 @@ class FileViewModel @Inject constructor(
         viewModelScope.launch {
             val token = dataStoreManager.getAccessToken().firstOrNull()
             if (token != null) {
-                //val formattedToken = if (token.startsWith("Bearer ")) token else "Bearer $token"
-                Log.d("FileViewModel", "Formatted token: $token")
                 try {
                     val response = apiService.getFiles()
                     if (response.isSuccessful) {
-                        Log.d("FileViewModel", "Response is successful")
                         response.body()?.let {
-                            Log.d("FileViewModel", "Files retrieved: ${it.files.size}")
                             _files.value = it.files
-                        } ?: run {
-                            Log.e("FileViewModel", "Response body is null")
                         }
                     } else {
                         Log.e("FileViewModel", "Failed to fetch files: ${response.errorBody()?.string()}")
-                        Log.e("FileViewModel", "Response headers: ${response.headers()}")
                     }
                 } catch (e: Exception) {
                     Log.e("FileViewModel", "Exception fetching files", e)
                 }
             } else {
                 Log.e("FileViewModel", "Access token is null")
+            }
+        }
+    }
+
+    fun deleteFile(fileId: String) {
+        viewModelScope.launch {
+            try {
+                val response = apiService.deleteFile(fileId)
+                if (response.isSuccessful) {
+                    _files.value = _files.value?.filterNot { it.fileId == fileId }
+                } else {
+                    Log.e("FileViewModel", "Failed to delete file: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("FileViewModel", "Exception deleting file", e)
             }
         }
     }
