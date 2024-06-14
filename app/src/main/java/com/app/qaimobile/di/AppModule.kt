@@ -1,7 +1,5 @@
-// com/app/qaimobile/di/AppModule.kt
 package com.app.qaimobile.di
 
-import com.app.qaimobile.util.Constants.BASE_URL
 import android.content.Context
 import com.app.qaimobile.data.remote.ApiService
 import com.app.qaimobile.util.location.LocationManager
@@ -24,26 +22,6 @@ object AppModule {
     @Provides
     @Singleton
     fun provideContext(@ApplicationContext context: Context): Context = context
-
-    @Provides
-    @Singleton
-    fun provideResourceProvider(@ApplicationContext context: Context): ResourceProvider = ResourceProvider(context)
-
-    @Provides
-    @Singleton
-    fun provideRetrofit(client: OkHttpClient, gson: Gson): Retrofit {
-        return Retrofit.Builder()
-            .client(client)
-            .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build()
-    }
-
-    @Provides
-    @Singleton
-    fun provideApiService(retrofit: Retrofit): ApiService {
-        return retrofit.create(ApiService::class.java)
-    }
 
     @Provides
     @Singleton

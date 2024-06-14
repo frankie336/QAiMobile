@@ -3,6 +3,7 @@ package com.app.qaimobile.ui.chat
 import android.content.Intent
 import android.content.res.Configuration
 import android.provider.MediaStore
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateColorAsState
@@ -320,6 +321,10 @@ fun QComposerScreen(
                         onClick = {
                             if (message.isNotBlank()) {
                                 coroutineScope.launch {
+                                    if (imageViewModel.imageUri != null) {
+                                        Log.d("QComposerScreen", "Image upload triggered before sending message")
+                                        imageViewModel.uploadSelectedImage(selectedThreadId)
+                                    }
                                     onEvent(ChatUiEvent.SendMessage(selectedThreadId ?: "", message))
                                     message = ""
                                     keyboardController?.hide()

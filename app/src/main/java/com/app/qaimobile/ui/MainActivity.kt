@@ -21,6 +21,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.app.qaimobile.data.model.network.LocationUpdateRequest
 import com.app.qaimobile.data.remote.ApiService
+import com.app.qaimobile.data.remote.FileUploadService
 import com.app.qaimobile.domain.datastore.AppDataStore
 import com.app.qaimobile.navigation.Destinations.APP_NAV_GRAPH_ROUTE
 import com.app.qaimobile.navigation.appNavGraph
@@ -46,6 +47,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var apiService: ApiService
+
+    @Inject
+    lateinit var fileUploadService: FileUploadService // Inject FileUploadService
 
     @Inject
     lateinit var locationManager: LocationManager
@@ -80,7 +84,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     appNavGraph(navController, SplashScreenDestination.route)
                     composable("imageHandling") {
-                        ImageHandlingScreen(apiService = apiService) // Pass the apiService instance
+                        ImageHandlingScreen(fileUploadService = fileUploadService) // Pass the FileUploadService instance
                     }
                 }
             }

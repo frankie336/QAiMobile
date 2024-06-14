@@ -1,6 +1,5 @@
 package com.app.qaimobile.ui.image_handling
 
-import android.app.Application
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -15,12 +14,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import com.app.qaimobile.data.remote.ApiService
+import com.app.qaimobile.data.remote.FileUploadService
 
 @Composable
 fun ImageHandlingScreen(
-    apiService: ApiService, // Add this parameter
-    viewModel: ImageViewModel = viewModel(factory = ImageViewModelFactory(apiService)) // Use a factory to create the view model
+    fileUploadService: FileUploadService,
+    viewModel: ImageViewModel = viewModel(factory = ImageViewModelFactory(fileUploadService))
 ) {
     val captureImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == android.app.Activity.RESULT_OK) {
@@ -40,7 +39,6 @@ fun ImageHandlingScreen(
 
     LaunchedEffect(viewModel.imageUri) {
         viewModel.imageUri?.let {
-            // Upload the selected image to the backend
             viewModel.uploadSelectedImage(threadId = null) // Pass the threadId if available
         }
     }
@@ -77,15 +75,3 @@ fun ImageHandlingScreen(
     }
 }
 
-class ImageViewModelFactory(apiService: ApiService) : ViewModelProvider.Factory {
-
-}
-
-@Composable
-fun imageViewModelFactory(apiService: ApiService): ImageViewModel.Factory {
-    return object : ImageViewModel.Factory {
-        override fun create(application: Application): ImageViewModel {
-            return ImageViewModel(application, apiService)
-        }
-    }
-}

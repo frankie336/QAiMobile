@@ -1,7 +1,9 @@
 package com.app.qaimobile.di
 
-import com.app.qaimobile.util.Constants.BASE_URL
+import com.app.qaimobile.data.remote.ApiService
 import com.app.qaimobile.data.remote.AuthInterceptor
+import com.app.qaimobile.data.remote.FileUploadService
+import com.app.qaimobile.util.Constants.BASE_URL
 import com.app.qaimobile.util.Constants
 import dagger.Module
 import dagger.Provides
@@ -9,21 +11,17 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import java.util.concurrent.TimeUnit
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
+import java.util.concurrent.TimeUnit
 
-/**
- * Dagger Hilt module for providing network dependencies.
- */
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    /**
-     * Provides base URL for the Retrofit instance.
-     */
     @Provides
-    fun provideBaseUrl(): String = BASE_URL // Base URL set to your development server
+    fun provideBaseUrl(): String = BASE_URL
 
     @Singleton
     @Provides
@@ -46,14 +44,25 @@ object NetworkModule {
                 chain.proceed(request)
             }.build()
 
-    /**
-     * Provides HttpLoggingInterceptor for logging network requests and responses.
-     * @return HttpLoggingInterceptor instance.
-     */
     @Singleton
     @Provides
     fun provideHttpInterceptor(): HttpLoggingInterceptor =
         HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
 
-    // Removed provideGson to avoid duplicate bindings
+    @Singleton
+    @Provides
+    fun provideRetrofit(okHttpClient: OkHttpClient, baseUrl: String): Retrofit =
+        Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+    @Singleton
+    @Provides
+    fun provideApiService(retrofit: Retrofit): ApiService = retrofit.create(ApiService::class.java)
+
+    @Singleton
+    @Provides
+    fun provideFileUploadService(retrofit: Retrofit): FileUploadService = retrofit.create(FileUploadService::class.java)
 }
