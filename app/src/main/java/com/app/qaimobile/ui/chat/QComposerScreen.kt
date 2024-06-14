@@ -57,7 +57,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Destination(route = Destinations.CHAT_ROUTE)
 @Composable
 fun QComposerScreen(
     viewModel: ChatViewModel = hiltViewModel(),
@@ -341,10 +340,10 @@ fun QComposerScreen(
                                 .background(Color.White)
                                 .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
                         ) {
-                            Column(
+                            Row(
                                 modifier = Modifier.padding(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 IconTextButton(
                                     icon = Icons.Default.PhotoLibrary,
@@ -466,7 +465,7 @@ fun IconTextButton(icon: ImageVector, text: String, onClick: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(icon, contentDescription = text, tint = Color.Black)
-            Text(text, color = Color.Black, style = MaterialTheme.typography.bodyMedium)
+            Text(text, color = Color.Black, style = MaterialTheme.typography.labelMedium)
         }
     }
 }
