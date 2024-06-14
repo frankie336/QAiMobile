@@ -2,6 +2,7 @@ package com.app.qaimobile.ui.chat
 
 import android.content.Intent
 import android.content.res.Configuration
+import android.net.Uri
 import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -28,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -37,6 +39,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.app.qaimobile.data.model.network.toEntity
 import com.app.qaimobile.navigation.Destinations
 import com.app.qaimobile.ui.composables.AnimatedOrb
@@ -86,6 +89,8 @@ fun QComposerScreen(
 
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    val imageUri by imageViewModel.imageUri.collectAsState()
 
     // Initialize image pickers
     val selectImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -281,97 +286,140 @@ fun QComposerScreen(
                 color = Color.White,
                 border = BorderStroke(1.dp, Color.LightGray)
             ) {
-                Row(
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    TextField(
-                        value = message,
-                        onValueChange = { message = it },
-                        placeholder = { Text("Type a message") },
-                        modifier = Modifier
-                            .weight(1f)
-                            .background(color = Color.Transparent, shape = RoundedCornerShape(24.dp)),
-                        colors = TextFieldDefaults.textFieldColors(
-                            containerColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
-                        ),
-                        keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
-                    )
+                    ImagePreview(imageUri = imageUri, onRemove = { imageViewModel.updateImageUri(null) })
 
-                    IconButton(
-                        onClick = {
-                            selectImageLauncher.launch(Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI))
-                        },
-                        modifier = Modifier
-                            .size(40.dp)
-                            .background(color = Color(0xFFff6c00), shape = CircleShape)
-                            .padding(8.dp)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Image,
-                            contentDescription = "Select Image",
-                            tint = Color.White
+                        TextField(
+                            value = message,
+                            onValueChange = { message = it },
+                            placeholder = { Text("Type a message") },
+                            modifier = Modifier
+                                .weight(1f)
+                                .background(color = Color.Transparent, shape = RoundedCornerShape(24.dp)),
+                            colors = TextFieldDefaults.textFieldColors(
+                                containerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent
+                            ),
+                            keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
                         )
-                    }
 
-                    IconButton(
-                        onClick = {
-                            if (message.isNotBlank()) {
+                        IconButton(
+                            onClick = {
+                                selectImageLauncher.launch(Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI))
                                 coroutineScope.launch {
-                                    if (imageViewModel.imageUri != null) {
-                                        Log.d("QComposerScreen", "Image upload triggered before sending message")
-                                        imageViewModel.uploadSelectedImage(selectedThreadId)
-                                    }
-                                    onEvent(ChatUiEvent.SendMessage(selectedThreadId ?: "", message))
-                                    message = ""
-                                    keyboardController?.hide()
-                                    showBorder = true
-
-                                    val timeoutMillis = 30000L // 30 seconds timeout
-                                    val startTime = System.currentTimeMillis()
-
-                                    while (System.currentTimeMillis() - startTime < timeoutMillis) {
-                                        runStatusViewModel.fetchRunStatus(selectedThreadId ?: "")
-                                        when (runStatusViewModel.status.value) {
-                                            "completed" -> {
-                                                showBorder = false
-                                                break
-                                            }
-                                            "error" -> {
-                                                showBorder = false
-                                                showToast(context, "Error fetching run status")
-                                                break
-                                            }
-                                        }
-                                        delay(100)
-                                    }
-
-                                    if (runStatusViewModel.status.value != "completed") {
-                                        showBorder = false
-                                        //showToast(context, "Run status timed out")
-                                    }
+                                    imageViewModel.uploadSelectedImage(selectedThreadId)
                                 }
-                            } else {
-                                showToast(context, "Please enter a message")
-                            }
-                        },
-                        modifier = Modifier
-                            .size(40.dp)
-                            .background(color = Color(0xFFff6c00), shape = CircleShape)
-                            .padding(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowUpward,
-                            contentDescription = "Send",
-                            tint = Color.White
-                        )
+                            },
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(color = Color(0xFFff6c00), shape = CircleShape)
+                                .padding(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Image,
+                                contentDescription = "Select Image",
+                                tint = Color.White
+                            )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                if (message.isNotBlank()) {
+                                    coroutineScope.launch {
+                                        onEvent(ChatUiEvent.SendMessage(selectedThreadId ?: "", message))
+                                        message = ""
+                                        keyboardController?.hide()
+                                        showBorder = true
+
+                                        val timeoutMillis = 30000L // 30 seconds timeout
+                                        val startTime = System.currentTimeMillis()
+
+                                        while (System.currentTimeMillis() - startTime < timeoutMillis) {
+                                            runStatusViewModel.fetchRunStatus(selectedThreadId ?: "")
+                                            when (runStatusViewModel.status.value) {
+                                                "completed" -> {
+                                                    showBorder = false
+                                                    break
+                                                }
+                                                "error" -> {
+                                                    showBorder = false
+                                                    showToast(context, "Error fetching run status")
+                                                    break
+                                                }
+                                            }
+                                            delay(100)
+                                        }
+
+                                        if (runStatusViewModel.status.value != "completed") {
+                                            showBorder = false
+                                            //showToast(context, "Run status timed out")
+                                        }
+                                    }
+                                } else {
+                                    showToast(context, "Please enter a message")
+                                }
+                            },
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(color = Color(0xFFff6c00), shape = CircleShape)
+                                .padding(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowUpward,
+                                contentDescription = "Send",
+                                tint = Color.White
+                            )
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ImagePreview(imageUri: Uri?, onRemove: () -> Unit) {
+    if (imageUri != null) {
+        Box(
+            modifier = Modifier
+                .size(60.dp)
+                .background(Color.LightGray, RoundedCornerShape(8.dp))
+        ) {
+            AsyncImage(
+                model = imageUri,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(60.dp)
+                    .align(Alignment.Center)
+                    .padding(4.dp),
+                contentScale = ContentScale.Crop
+            )
+            IconButton(
+                onClick = onRemove,
+                modifier = Modifier
+                    .size(16.dp)
+                    .align(Alignment.TopEnd)
+                    .background(Color.Red, CircleShape)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Remove Image",
+                    tint = Color.White,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 

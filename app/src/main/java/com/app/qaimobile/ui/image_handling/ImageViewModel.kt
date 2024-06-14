@@ -1,19 +1,36 @@
 package com.app.qaimobile.ui.image_handling
 
-
 import android.app.Application
 import android.content.ContentResolver
 import android.content.Intent
 import android.net.Uri
 import android.provider.MediaStore
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import coil.compose.AsyncImage
 import com.app.qaimobile.data.remote.FileUploadService
 import com.app.qaimobile.data.remote.UploadFilesResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -31,7 +48,9 @@ class ImageViewModel @Inject constructor(
     application: Application,
     private val fileUploadService: FileUploadService
 ) : AndroidViewModel(application) {
-    var imageUri: Uri? = null
+
+    private val _imageUri = MutableStateFlow<Uri?>(null)
+    var imageUri: StateFlow<Uri?> = _imageUri.asStateFlow()
 
     lateinit var captureImageResultLauncher: ActivityResultLauncher<Intent>
     lateinit var selectImageResultLauncher: ActivityResultLauncher<Intent>
@@ -48,14 +67,14 @@ class ImageViewModel @Inject constructor(
     fun captureImage() {
         val captureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         val imageFile = File(getApplication<Application>().getExternalFilesDir(null), "image.jpg")
-        imageUri = FileProvider.getUriForFile(
+        _imageUri.value = FileProvider.getUriForFile(
             getApplication(),
             "${getApplication<Application>().packageName}.fileprovider",
             imageFile
         )
-        captureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
+        captureIntent.putExtra(MediaStore.EXTRA_OUTPUT, _imageUri.value)
         captureImageResultLauncher.launch(captureIntent)
-        Log.d("ImageViewModel", "captureImage called, URI: $imageUri")
+        Log.d("ImageViewModel", "captureImage called, URI: ${_imageUri.value}")
     }
 
     fun selectImageFromGallery() {
@@ -65,7 +84,7 @@ class ImageViewModel @Inject constructor(
     }
 
     fun updateImageUri(uri: Uri?) {
-        imageUri = uri
+        _imageUri.value = uri
         Log.d("ImageViewModel", "Image URI updated: $uri")
     }
 
@@ -83,7 +102,7 @@ class ImageViewModel @Inject constructor(
     }
 
     fun uploadSelectedImage(threadId: String?) {
-        imageUri?.let { uri ->
+        _imageUri.value?.let { uri ->
             viewModelScope.launch {
                 try {
                     Log.d("ImageViewModel", "Starting image upload for URI: $uri")
@@ -126,6 +145,66 @@ class ImageViewModel @Inject constructor(
                     Log.e("ImageViewModel", "Exception occurred during image upload", e)
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun ImageHandlingScreen(
+    viewModel: ImageViewModel = hiltViewModel()
+) {
+    val captureImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            viewModel.imageUri.value?.let { /* Handle the captured image URI */ }
+        }
+    }
+
+    val selectImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK && result.data != null) {
+            viewModel.updateImageUri(result.data!!.data)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.initialize(captureImageLauncher, selectImageLauncher)
+    }
+
+    val imageUri by viewModel.imageUri.collectAsState()
+
+    LaunchedEffect(imageUri) {
+        imageUri?.let {
+            viewModel.uploadSelectedImage(threadId = null) // Pass the threadId if available
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        imageUri?.let {
+            AsyncImage(
+                model = it,
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp),
+                contentScale = ContentScale.Crop
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = { viewModel.captureImage() }) {
+            Text("Capture Image")
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Button(onClick = { viewModel.selectImageFromGallery() }) {
+            Text("Select Image from Gallery")
         }
     }
 }

@@ -91,7 +91,7 @@ interface ApiService {
      * @return The response indicating the result of the upload operation.
      */
     @Multipart
-    @POST("bp_files/q-file-upload")
+    @POST("bp_files_mobile/q-file-upload")
     suspend fun uploadFiles(
         @Part files: List<MultipartBody.Part>,
         @Part("tabNames") tabNames: List<String>,

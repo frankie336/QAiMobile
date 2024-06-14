@@ -9,7 +9,7 @@ import retrofit2.http.Part
 
 interface FileUploadService {
     @Multipart
-    @POST("/bp_files/q-file-upload")
+    @POST("/bp_files_mobile/q-file-upload")
     fun uploadFiles(
         @Part files: List<MultipartBody.Part>,
         @Part("tabNames") tabNames: List<String>,
