@@ -90,18 +90,28 @@ fun QComposerScreen(
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-    val imageUri by imageViewModel.imageUri.collectAsState()
+    val imageUris by imageViewModel.imageUris.collectAsState()
 
     // Initialize image pickers
     val selectImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == android.app.Activity.RESULT_OK && result.data != null) {
-            imageViewModel.updateImageUri(result.data!!.data)
+            result.data?.let { data ->
+                val clipData = data.clipData
+                if (clipData != null) {
+                    val uris = (0 until clipData.itemCount).map { clipData.getItemAt(it).uri }
+                    imageViewModel.updateImageUris(uris)
+                } else {
+                    data.data?.let { uri ->
+                        imageViewModel.updateImageUris(listOf(uri))
+                    }
+                }
+            }
         }
     }
 
     val captureImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == android.app.Activity.RESULT_OK) {
-            imageViewModel.imageUri?.let { /* Handle the captured image URI */ }
+            imageViewModel.imageUris.value.lastOrNull()?.let { /* Handle the captured image URI */ }
         }
     }
 
@@ -291,7 +301,7 @@ fun QComposerScreen(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    ImagePreview(imageUri = imageUri, onRemove = { imageViewModel.updateImageUri(null) })
+                    ImagesPreview(imageUris = imageUris, onRemove = { uri -> imageViewModel.removeImageUri(uri) })
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -317,7 +327,7 @@ fun QComposerScreen(
                             onClick = {
                                 selectImageLauncher.launch(Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI))
                                 coroutineScope.launch {
-                                    imageViewModel.uploadSelectedImage(selectedThreadId)
+                                    imageViewModel.uploadSelectedImages(selectedThreadId)
                                 }
                             },
                             modifier = Modifier
@@ -388,38 +398,43 @@ fun QComposerScreen(
 }
 
 @Composable
-fun ImagePreview(imageUri: Uri?, onRemove: () -> Unit) {
-    if (imageUri != null) {
-        Box(
-            modifier = Modifier
-                .size(60.dp)
-                .background(Color.LightGray, RoundedCornerShape(8.dp))
-        ) {
-            AsyncImage(
-                model = imageUri,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(60.dp)
-                    .align(Alignment.Center)
-                    .padding(4.dp),
-                contentScale = ContentScale.Crop
-            )
-            IconButton(
-                onClick = onRemove,
-                modifier = Modifier
-                    .size(16.dp)
-                    .align(Alignment.TopEnd)
-                    .background(Color.Red, CircleShape)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Remove Image",
-                    tint = Color.White,
-                    modifier = Modifier.size(16.dp)
-                )
+fun ImagesPreview(imageUris: List<Uri>, onRemove: (Uri) -> Unit) {
+    if (imageUris.isNotEmpty()) {
+        Column {
+            imageUris.forEach { uri ->
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .background(Color.LightGray, RoundedCornerShape(8.dp))
+                ) {
+                    AsyncImage(
+                        model = uri,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(60.dp)
+                            .align(Alignment.Center)
+                            .padding(4.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                    IconButton(
+                        onClick = { onRemove(uri) },
+                        modifier = Modifier
+                            .size(16.dp)
+                            .align(Alignment.TopEnd)
+                            .offset(x = 4.dp, y = (-4).dp)
+                            .background(Color.Gray.copy(alpha = 0.7f), CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Remove Image",
+                            tint = Color.White,
+                            modifier = Modifier.size(12.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
-        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 

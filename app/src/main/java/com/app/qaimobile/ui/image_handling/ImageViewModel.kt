@@ -10,6 +10,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,8 +52,8 @@ class ImageViewModel @Inject constructor(
     private val fileUploadService: FileUploadService
 ) : AndroidViewModel(application) {
 
-    private val _imageUri = MutableStateFlow<Uri?>(null)
-    var imageUri: StateFlow<Uri?> = _imageUri.asStateFlow()
+    private val _imageUris = MutableStateFlow<List<Uri>>(emptyList())
+    val imageUris: StateFlow<List<Uri>> = _imageUris.asStateFlow()
 
     lateinit var captureImageResultLauncher: ActivityResultLauncher<Intent>
     lateinit var selectImageResultLauncher: ActivityResultLauncher<Intent>
@@ -67,31 +70,41 @@ class ImageViewModel @Inject constructor(
     fun captureImage() {
         val captureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         val imageFile = File(getApplication<Application>().getExternalFilesDir(null), "image.jpg")
-        _imageUri.value = FileProvider.getUriForFile(
+        val imageUri = FileProvider.getUriForFile(
             getApplication(),
             "${getApplication<Application>().packageName}.fileprovider",
             imageFile
         )
-        captureIntent.putExtra(MediaStore.EXTRA_OUTPUT, _imageUri.value)
+        captureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
         captureImageResultLauncher.launch(captureIntent)
-        Log.d("ImageViewModel", "captureImage called, URI: ${_imageUri.value}")
+        Log.d("ImageViewModel", "captureImage called, URI: $imageUri")
     }
 
     fun selectImageFromGallery() {
         val selectIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        selectIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
         selectImageResultLauncher.launch(selectIntent)
         Log.d("ImageViewModel", "selectImageFromGallery called")
     }
 
-    fun updateImageUri(uri: Uri?) {
-        _imageUri.value = uri
-        Log.d("ImageViewModel", "Image URI updated: $uri")
+    fun updateImageUris(uris: List<Uri>) {
+        val currentList = _imageUris.value.toMutableList()
+        currentList.addAll(uris)
+        _imageUris.value = currentList
+        Log.d("ImageViewModel", "Image URIs added: $uris")
+    }
+
+    fun removeImageUri(uri: Uri) {
+        val currentList = _imageUris.value.toMutableList()
+        currentList.remove(uri)
+        _imageUris.value = currentList
+        Log.d("ImageViewModel", "Image URI removed: $uri")
     }
 
     private fun uriToFile(uri: Uri): File {
         val contentResolver: ContentResolver = getApplication<Application>().contentResolver
         val inputStream: InputStream? = contentResolver.openInputStream(uri)
-        val file = File(getApplication<Application>().cacheDir, "tempImageFile.jpg")
+        val file = File(getApplication<Application>().cacheDir, "tempImageFile${System.currentTimeMillis()}.jpg")
         val outputStream = FileOutputStream(file)
         inputStream?.use { input ->
             outputStream.use { output ->
@@ -101,8 +114,8 @@ class ImageViewModel @Inject constructor(
         return file
     }
 
-    fun uploadSelectedImage(threadId: String?) {
-        _imageUri.value?.let { uri ->
+    fun uploadSelectedImages(threadId: String?) {
+        _imageUris.value.forEach { uri ->
             viewModelScope.launch {
                 try {
                     Log.d("ImageViewModel", "Starting image upload for URI: $uri")
@@ -145,66 +158,6 @@ class ImageViewModel @Inject constructor(
                     Log.e("ImageViewModel", "Exception occurred during image upload", e)
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun ImageHandlingScreen(
-    viewModel: ImageViewModel = hiltViewModel()
-) {
-    val captureImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == android.app.Activity.RESULT_OK) {
-            viewModel.imageUri.value?.let { /* Handle the captured image URI */ }
-        }
-    }
-
-    val selectImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == android.app.Activity.RESULT_OK && result.data != null) {
-            viewModel.updateImageUri(result.data!!.data)
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.initialize(captureImageLauncher, selectImageLauncher)
-    }
-
-    val imageUri by viewModel.imageUri.collectAsState()
-
-    LaunchedEffect(imageUri) {
-        imageUri?.let {
-            viewModel.uploadSelectedImage(threadId = null) // Pass the threadId if available
-        }
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        imageUri?.let {
-            AsyncImage(
-                model = it,
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp),
-                contentScale = ContentScale.Crop
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(onClick = { viewModel.captureImage() }) {
-            Text("Capture Image")
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Button(onClick = { viewModel.selectImageFromGallery() }) {
-            Text("Select Image from Gallery")
         }
     }
 }

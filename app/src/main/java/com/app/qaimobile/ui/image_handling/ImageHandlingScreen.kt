@@ -1,10 +1,14 @@
 package com.app.qaimobile.ui.image_handling
 
 import android.app.Application
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,25 +19,34 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.app.qaimobile.data.remote.FileUploadService
 
 @Composable
 fun ImageHandlingScreen(
-    fileUploadService: FileUploadService, // Change this to FileUploadService
-    viewModel: ImageViewModel = viewModel(factory = ImageViewModelFactory(fileUploadService)) // Use the factory to create the view model
+    fileUploadService: FileUploadService,
+    viewModel: ImageViewModel = viewModel(factory = ImageViewModelFactory(fileUploadService))
 ) {
     val captureImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == android.app.Activity.RESULT_OK) {
-            viewModel.imageUri?.value?.let { /* Handle the captured image URI */ }
+            viewModel.imageUris.value.lastOrNull()?.let { /* Handle the captured image URI */ }
         }
     }
 
     val selectImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == android.app.Activity.RESULT_OK && result.data != null) {
-            viewModel.updateImageUri(result.data!!.data)
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            result.data?.let { data ->
+                val clipData = data.clipData
+                if (clipData != null) {
+                    val uris = (0 until clipData.itemCount).map { clipData.getItemAt(it).uri }
+                    viewModel.updateImageUris(uris)
+                } else {
+                    data.data?.let { uri ->
+                        viewModel.updateImageUris(listOf(uri))
+                    }
+                }
+            }
         }
     }
 
@@ -41,12 +54,12 @@ fun ImageHandlingScreen(
         viewModel.initialize(captureImageLauncher, selectImageLauncher)
     }
 
-    val imageUri by viewModel.imageUri.collectAsState()
+    val imageUris by viewModel.imageUris.collectAsState()
 
-    LaunchedEffect(imageUri) {
-        imageUri?.let {
-            // Upload the selected image to the backend
-            viewModel.uploadSelectedImage(threadId = null) // Pass the threadId if available
+    LaunchedEffect(imageUris) {
+        if (imageUris.isNotEmpty()) {
+            // Upload the selected images to the backend
+            viewModel.uploadSelectedImages(threadId = null) // Pass the threadId if available
         }
     }
 
@@ -57,15 +70,23 @@ fun ImageHandlingScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        imageUri?.let {
-            AsyncImage(
-                model = it,
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp),
-                contentScale = ContentScale.Crop
-            )
+        if (imageUris.isNotEmpty()) {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.height(300.dp)
+            ) {
+                items(imageUris) { uri ->
+                    AsyncImage(
+                        model = uri,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp)
+                            .padding(4.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -77,7 +98,7 @@ fun ImageHandlingScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Button(onClick = { viewModel.selectImageFromGallery() }) {
-            Text("Select Image from Gallery")
+            Text("Select Images from Gallery")
         }
     }
 }
