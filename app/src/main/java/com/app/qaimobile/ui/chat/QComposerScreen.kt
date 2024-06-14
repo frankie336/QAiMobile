@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -157,7 +158,10 @@ fun QComposerScreen(
                         )
                         DropdownMenu(
                             expanded = modelDropdownExpanded,
-                            onDismissRequest = { modelDropdownExpanded = false }
+                            onDismissRequest = { modelDropdownExpanded = false },
+                            modifier = Modifier
+                                .background(Color.White)
+                                .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
                         ) {
                             modelMapping.keys.forEach { key ->
                                 DropdownMenuItem(
@@ -194,7 +198,10 @@ fun QComposerScreen(
                     DropdownMenu(
                         expanded = expandedMainMenu,
                         onDismissRequest = { expandedMainMenu = false },
-                        offset = DpOffset((-160).dp, (-16).dp)
+                        offset = DpOffset((-160).dp, (-16).dp),
+                        modifier = Modifier
+                            .background(Color.White)
+                            .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
                     ) {
                         DropdownMenuItem(
                             text = { Text("Files", color = Color.Gray) },
@@ -324,35 +331,69 @@ fun QComposerScreen(
                             keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
                         )
 
-                        FloatingActionButton(onClick = { expandedFabMenu = !expandedFabMenu }) {
-                            Icon(Icons.Default.Add, contentDescription = "Add")
+                        IconButton(onClick = { expandedFabMenu = !expandedFabMenu }) {
+                            Icon(Icons.Default.AttachFile, contentDescription = "Attach")
                         }
                         DropdownMenu(
                             expanded = expandedFabMenu,
                             onDismissRequest = { expandedFabMenu = false },
+                            modifier = Modifier
+                                .background(Color.White)
+                                .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
                         ) {
-                            DropdownMenuItem(
-                                text = { Text("Select Image") },
-                                onClick = {
-                                    selectImageLauncher.launch(
-                                        Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
-                                            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                            Column(
+                                modifier = Modifier.padding(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                IconTextButton(
+                                    icon = Icons.Default.PhotoLibrary,
+                                    text = "Gallery",
+                                    onClick = {
+                                        selectImageLauncher.launch(
+                                            Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
+                                                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                                            }
+                                        )
+                                        coroutineScope.launch {
+                                            imageViewModel.uploadSelectedImages(selectedThreadId)
                                         }
-                                    )
-                                    coroutineScope.launch {
-                                        imageViewModel.uploadSelectedImages(selectedThreadId)
+                                        expandedFabMenu = false
                                     }
-                                    expandedFabMenu = false
-                                }
-                            )
-
-                            DropdownMenuItem(
-                                text = { Text("Other Action") },
-                                onClick = {
-                                    // Handle other actions
-                                    expandedFabMenu = false
-                                }
-                            )
+                                )
+                                IconTextButton(
+                                    icon = Icons.Default.Description,
+                                    text = "Document",
+                                    onClick = {
+                                        // Handle Document action
+                                        expandedFabMenu = false
+                                    }
+                                )
+                                IconTextButton(
+                                    icon = Icons.Default.CameraAlt,
+                                    text = "Camera",
+                                    onClick = {
+                                        // Handle Camera action
+                                        expandedFabMenu = false
+                                    }
+                                )
+                                IconTextButton(
+                                    icon = Icons.Default.Mic,
+                                    text = "Audio",
+                                    onClick = {
+                                        // Handle Audio action
+                                        expandedFabMenu = false
+                                    }
+                                )
+                                IconTextButton(
+                                    icon = Icons.Default.LocationOn,
+                                    text = "Location",
+                                    onClick = {
+                                        // Handle Location action
+                                        expandedFabMenu = false
+                                    }
+                                )
+                            }
                         }
 
                         IconButton(
@@ -406,6 +447,26 @@ fun QComposerScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun IconTextButton(icon: ImageVector, text: String, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+        elevation = ButtonDefaults.buttonElevation(0.dp),
+        contentPadding = PaddingValues(0.dp),
+        modifier = Modifier
+            .size(60.dp)
+            .padding(4.dp)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(icon, contentDescription = text, tint = Color.Black)
+            Text(text, color = Color.Black, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
