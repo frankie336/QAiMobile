@@ -74,7 +74,8 @@ fun QComposerScreen(
     val selectedMessages by viewModel.selectedConversationMessages.collectAsState()
     val selectedModel by viewModel.selectedModel.collectAsState(initial = DEFAULT_MODEL)
     var showSidebar by remember { mutableStateOf(false) }
-    var expanded by remember { mutableStateOf(false) }
+    var expandedMainMenu by remember { mutableStateOf(false) }
+    var expandedFabMenu by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -186,40 +187,40 @@ fun QComposerScreen(
                         }) {
                             Icon(Icons.Default.Add, contentDescription = "Create Session", tint = Color.Gray)
                         }
-                        IconButton(onClick = { expanded = !expanded }) {
+                        IconButton(onClick = { expandedMainMenu = !expandedMainMenu }) {
                             Icon(Icons.Default.MoreVert, contentDescription = "Menu", tint = Color.Gray)
                         }
                     }
                     DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
+                        expanded = expandedMainMenu,
+                        onDismissRequest = { expandedMainMenu = false },
                         offset = DpOffset((-160).dp, (-16).dp)
                     ) {
                         DropdownMenuItem(
                             text = { Text("Files", color = Color.Gray) },
                             onClick = {
-                                expanded = false
+                                expandedMainMenu = false
                                 navHostController.navigate(Destinations.FILE_LIST_ROUTE) // Navigate to FileListScreen
                             }
                         )
                         DropdownMenuItem(
                             text = { Text("Settings", color = Color.Gray) },
                             onClick = {
-                                expanded = false
+                                expandedMainMenu = false
                             }
                         )
 
                         DropdownMenuItem(
                             text = { Text("Profile", color = Color.Gray) },
                             onClick = {
-                                expanded = false
+                                expandedMainMenu = false
                             }
                         )
 
                         DropdownMenuItem(
                             text = { Text("Personality", color = Color.Gray) },
                             onClick = {
-                                expanded = false
+                                expandedMainMenu = false
                                 navHostController.navigate(Destinations.PERSONALITY_SELECTION_ROUTE)
                             }
                         )
@@ -323,26 +324,34 @@ fun QComposerScreen(
                             keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
                         )
 
-                        IconButton(
-                            onClick = {
-                                selectImageLauncher.launch(
-                                    Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
-                                        putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-                                    }
-                                )
-                                coroutineScope.launch {
-                                    imageViewModel.uploadSelectedImages(selectedThreadId)
-                                }
-                            },
-                            modifier = Modifier
-                                .size(40.dp)
-                                .background(color = Color(0xFFff6c00), shape = CircleShape)
-                                .padding(8.dp)
+                        FloatingActionButton(onClick = { expandedFabMenu = !expandedFabMenu }) {
+                            Icon(Icons.Default.Add, contentDescription = "Add")
+                        }
+                        DropdownMenu(
+                            expanded = expandedFabMenu,
+                            onDismissRequest = { expandedFabMenu = false },
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Image,
-                                contentDescription = "Select Image",
-                                tint = Color.White
+                            DropdownMenuItem(
+                                text = { Text("Select Image") },
+                                onClick = {
+                                    selectImageLauncher.launch(
+                                        Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
+                                            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                                        }
+                                    )
+                                    coroutineScope.launch {
+                                        imageViewModel.uploadSelectedImages(selectedThreadId)
+                                    }
+                                    expandedFabMenu = false
+                                }
+                            )
+
+                            DropdownMenuItem(
+                                text = { Text("Other Action") },
+                                onClick = {
+                                    // Handle other actions
+                                    expandedFabMenu = false
+                                }
                             )
                         }
 
@@ -441,7 +450,6 @@ fun ImagesPreview(imageUris: List<Uri>, onRemove: (Uri) -> Unit) {
         }
     }
 }
-
 
 @Composable
 fun GlowingBorder(runStatusViewModel: RunStatusViewModel, showBorder: Boolean) {
