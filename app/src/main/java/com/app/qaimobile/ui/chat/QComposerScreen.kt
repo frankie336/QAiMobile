@@ -325,7 +325,11 @@ fun QComposerScreen(
 
                         IconButton(
                             onClick = {
-                                selectImageLauncher.launch(Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI))
+                                selectImageLauncher.launch(
+                                    Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
+                                        putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                                    }
+                                )
                                 coroutineScope.launch {
                                     imageViewModel.uploadSelectedImages(selectedThreadId)
                                 }
@@ -400,12 +404,13 @@ fun QComposerScreen(
 @Composable
 fun ImagesPreview(imageUris: List<Uri>, onRemove: (Uri) -> Unit) {
     if (imageUris.isNotEmpty()) {
-        Column {
+        Row {
             imageUris.forEach { uri ->
                 Box(
                     modifier = Modifier
                         .size(60.dp)
                         .background(Color.LightGray, RoundedCornerShape(8.dp))
+                        .padding(end = 8.dp)
                 ) {
                     AsyncImage(
                         model = uri,
@@ -432,11 +437,11 @@ fun ImagesPreview(imageUris: List<Uri>, onRemove: (Uri) -> Unit) {
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }
 }
+
 
 @Composable
 fun GlowingBorder(runStatusViewModel: RunStatusViewModel, showBorder: Boolean) {
