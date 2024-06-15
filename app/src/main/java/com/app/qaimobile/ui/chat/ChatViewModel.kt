@@ -89,6 +89,23 @@ class ChatViewModel @Inject constructor(
         }
     }
 
+    fun getActiveThreadId(): String? {
+        var activeThreadId: String? = null
+        viewModelScope.launch {
+            val preferences = dataStoreManager.dataStore.data.first()
+            activeThreadId = preferences[PreferencesKeys.SELECTED_CONVERSATION_ID]
+        }
+        return activeThreadId
+    }
+
+    fun saveSelectedThreadId(threadId: String) {
+        viewModelScope.launch {
+            dataStoreManager.dataStore.edit { preferences ->
+                preferences[PreferencesKeys.SELECTED_CONVERSATION_ID] = threadId
+            }
+        }
+    }
+
     fun onEvent(event: ChatUiEvent) {
         when (event) {
             is ChatUiEvent.ShowError -> {
@@ -101,9 +118,7 @@ class ChatViewModel @Inject constructor(
                 viewModelScope.launch {
                     Log.d("ChatViewModel", "SelectConversation event received: ${event.conversationId}")
                     refreshConversations()
-                    dataStoreManager.dataStore.edit { preferences ->
-                        preferences[PreferencesKeys.SELECTED_CONVERSATION_ID] = event.conversationId
-                    }
+                    saveSelectedThreadId(event.conversationId)
                     Log.d("ChatViewModel", "Active Conversation ID set: ${event.conversationId}")
                     selectConversation(event.conversationId)
                 }
@@ -282,9 +297,7 @@ class ChatViewModel @Inject constructor(
 
                         if (!receivedConversationId.isNullOrEmpty() && !receivedThreadId.isNullOrEmpty()) {
                             Log.d("ChatViewModel", "Received conversation_id: $receivedConversationId, thread_id: $receivedThreadId")
-                            dataStoreManager.dataStore.edit { preferences ->
-                                preferences[PreferencesKeys.SELECTED_CONVERSATION_ID] = receivedConversationId
-                            }
+                            saveSelectedThreadId(receivedConversationId)
 
                             // Emit a SelectConversation event with the received conversation ID
                             _uiEvent.emit(ChatUiEvent.SelectConversation(receivedConversationId))
@@ -314,10 +327,8 @@ class ChatViewModel @Inject constructor(
             }
 
             if (conversationId == null) {
-                dataStoreManager.dataStore.edit { preferences ->
-                    preferences[PreferencesKeys.SELECTED_CONVERSATION_ID] = finalConversationId
-                    Log.d("ChatViewModel", "Conversation ID or Thread ID is null or empty")
-                }
+                saveSelectedThreadId(finalConversationId)
+                Log.d("ChatViewModel", "Conversation ID or Thread ID is null or empty")
             }
             playNotificationSound()
         }

@@ -41,6 +41,7 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.app.qaimobile.data.datastore.PreferencesKeys.SELECTED_CONVERSATION_ID
 import com.app.qaimobile.data.model.network.toEntity
 import com.app.qaimobile.navigation.Destinations
 import com.app.qaimobile.ui.composables.AnimatedOrb
@@ -109,12 +110,14 @@ fun QComposerScreen(
                     }
                 }
             }
+            expandedFabMenu = false // Close the menu after selection
         }
     }
 
     val captureImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == android.app.Activity.RESULT_OK) {
             imageViewModel.imageUris.value.lastOrNull()?.let { /* Handle the captured image URI */ }
+            expandedFabMenu = false // Close the menu after selection
         }
     }
 
@@ -342,10 +345,10 @@ fun QComposerScreen(
                                 .background(Color.White)
                                 .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
                         ) {
-                            Column(
+                            Row(
                                 modifier = Modifier.padding(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 IconTextButton(
                                     icon = Icons.Default.PhotoLibrary,
@@ -356,22 +359,25 @@ fun QComposerScreen(
                                                 putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
                                             }
                                         )
+                                        expandedFabMenu = false // Close the menu after selection
                                     }
                                 )
+
                                 IconTextButton(
                                     icon = Icons.Default.Description,
                                     text = "Document",
                                     onClick = {
                                         // Handle Document action
-                                        expandedFabMenu = false
+                                        expandedFabMenu = false // Close the menu after selection
                                     }
                                 )
+
                                 IconTextButton(
                                     icon = Icons.Default.CameraAlt,
                                     text = "Camera",
                                     onClick = {
                                         // Handle Camera action
-                                        expandedFabMenu = false
+                                        expandedFabMenu = false // Close the menu after selection
                                     }
                                 )
                                 IconTextButton(
@@ -379,7 +385,7 @@ fun QComposerScreen(
                                     text = "Audio",
                                     onClick = {
                                         // Handle Audio action
-                                        expandedFabMenu = false
+                                        expandedFabMenu = false // Close the menu after selection
                                     }
                                 )
                                 IconTextButton(
@@ -387,7 +393,7 @@ fun QComposerScreen(
                                     text = "Location",
                                     onClick = {
                                         // Handle Location action
-                                        expandedFabMenu = false
+                                        expandedFabMenu = false // Close the menu after selection
                                     }
                                 )
                             }
@@ -397,37 +403,33 @@ fun QComposerScreen(
                             onClick = {
                                 if (message.isNotBlank()) {
                                     coroutineScope.launch {
-                                        if (uploadSuccess) {
-                                            onEvent(ChatUiEvent.SendMessage(selectedThreadId ?: "", message))
-                                            message = ""
-                                            keyboardController?.hide()
-                                            showBorder = true
+                                        onEvent(ChatUiEvent.SendMessage(selectedThreadId ?: "", message))
+                                        message = ""
+                                        keyboardController?.hide()
+                                        showBorder = true
 
-                                            val timeoutMillis = 30000L // 30 seconds timeout
-                                            val startTime = System.currentTimeMillis()
+                                        val timeoutMillis = 30000L // 30 seconds timeout
+                                        val startTime = System.currentTimeMillis()
 
-                                            while (System.currentTimeMillis() - startTime < timeoutMillis) {
-                                                runStatusViewModel.fetchRunStatus(selectedThreadId ?: "")
-                                                when (runStatusViewModel.status.value) {
-                                                    "completed" -> {
-                                                        showBorder = false
-                                                        break
-                                                    }
-                                                    "error" -> {
-                                                        showBorder = false
-                                                        showToast(context, "Error fetching run status")
-                                                        break
-                                                    }
+                                        while (System.currentTimeMillis() - startTime < timeoutMillis) {
+                                            runStatusViewModel.fetchRunStatus(selectedThreadId ?: "")
+                                            when (runStatusViewModel.status.value) {
+                                                "completed" -> {
+                                                    showBorder = false
+                                                    break
                                                 }
-                                                delay(100)
+                                                "error" -> {
+                                                    showBorder = false
+                                                    showToast(context, "Error fetching run status")
+                                                    break
+                                                }
                                             }
+                                            delay(100)
+                                        }
 
-                                            if (runStatusViewModel.status.value != "completed") {
-                                                showBorder = false
-                                                //showToast(context, "Run status timed out")
-                                            }
-                                        } else {
-                                            showToast(context, "File upload is in progress, please wait.")
+                                        if (runStatusViewModel.status.value != "completed") {
+                                            showBorder = false
+                                            //showToast(context, "Run status timed out")
                                         }
                                     }
                                 } else {
@@ -466,11 +468,12 @@ fun IconTextButton(icon: ImageVector, text: String, onClick: () -> Unit) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(icon, contentDescription = text, tint = Color.Black)
+            Icon(icon, contentDescription = text, tint = Color.Gray)
             Text(text, color = Color.Black, style = MaterialTheme.typography.bodySmall)
         }
     }
 }
+
 
 @Composable
 fun ImagesPreview(imageUris: List<Uri>, onRemove: (Uri) -> Unit) {
