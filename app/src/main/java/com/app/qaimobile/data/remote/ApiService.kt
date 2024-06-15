@@ -1,5 +1,6 @@
 package com.app.qaimobile.data.remote
 
+import com.app.qaimobile.data.remote.DeleteFileRequest
 import com.app.qaimobile.data.model.network.*
 import com.app.qaimobile.data.model.network.auth.LoginRequest
 import com.app.qaimobile.data.model.network.auth.LoginResponse
@@ -98,6 +99,13 @@ interface ApiService {
         @Part("userId") userId: String,
         @Part("threadId") threadId: String?
     ): Response<UploadFilesResponse>
+
+
+    @POST("/bp_files/q-file-delete")
+    suspend fun deleteFile(
+        @Body deleteFileRequest: DeleteFileRequest
+    ): Response<Unit>
+
 
 }
 

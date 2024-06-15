@@ -3,9 +3,8 @@ package com.app.qaimobile.data.remote
 import com.app.qaimobile.data.remote.UploadFilesResponse
 import okhttp3.MultipartBody
 import retrofit2.Call
-import retrofit2.http.Multipart
-import retrofit2.http.POST
-import retrofit2.http.Part
+import retrofit2.Response
+import retrofit2.http.*
 
 interface FileUploadService {
     @Multipart
@@ -16,4 +15,9 @@ interface FileUploadService {
         @Part("userId") userId: String,
         @Part("threadId") threadId: String?
     ): Call<UploadFilesResponse>
+
+    @POST("/bp_files/q-file-delete")
+    suspend fun deleteFile(
+        @Body deleteFileRequest: DeleteFileRequest
+    ): Response<Unit>
 }

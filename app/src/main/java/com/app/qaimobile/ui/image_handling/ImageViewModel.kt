@@ -10,6 +10,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.qaimobile.data.remote.DeleteFileRequest
 import com.app.qaimobile.data.remote.FileUploadService
 import com.app.qaimobile.data.remote.UploadFilesResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -80,11 +81,34 @@ class ImageViewModel @Inject constructor(
         uploadSelectedImages(threadId)  // Ensure upload starts with threadId
     }
 
-    fun removeImageUri(uri: Uri) {
+    private fun deleteFileFromBackend(uri: Uri, threadId: String?) {
+        viewModelScope.launch {
+            try {
+                val response = fileUploadService.deleteFile(
+                    DeleteFileRequest(
+                        userId = "user123",
+                        threadId = threadId,
+                        tabName = "image",
+                        filename = uri.lastPathSegment ?: ""
+                    )
+                )
+                if (response.isSuccessful) {
+                    Log.d("ImageViewModel", "File deleted successfully from backend: $uri")
+                } else {
+                    Log.e("ImageViewModel", "Failed to delete file from backend: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("ImageViewModel", "Exception occurred while deleting file from backend", e)
+            }
+        }
+    }
+
+    fun removeImageUri(uri: Uri, threadId: String?) {
         val currentList = _imageUris.value.toMutableList()
         currentList.remove(uri)
         _imageUris.value = currentList
         Log.d("ImageViewModel", "Image URI removed: $uri")
+        deleteFileFromBackend(uri, threadId)
     }
 
     private fun uriToFile(uri: Uri): File {
@@ -166,6 +190,6 @@ class ImageViewModel @Inject constructor(
     }
 
     fun updateImageUris(uris: List<Uri>) {
-
+        // Implementation needed or can be removed if not used
     }
 }

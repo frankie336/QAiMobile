@@ -313,7 +313,7 @@ fun QComposerScreen(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    ImagesPreview(imageUris = imageUris, onRemove = { uri -> imageViewModel.removeImageUri(uri) })
+                    ImagesPreview(imageUris = imageUris, threadId = selectedThreadId, onRemove = { uri, threadId -> imageViewModel.removeImageUri(uri, threadId) })
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -474,9 +474,8 @@ fun IconTextButton(icon: ImageVector, text: String, onClick: () -> Unit) {
     }
 }
 
-
 @Composable
-fun ImagesPreview(imageUris: List<Uri>, onRemove: (Uri) -> Unit) {
+fun ImagesPreview(imageUris: List<Uri>, threadId: String?, onRemove: (Uri, String?) -> Unit) {
     if (imageUris.isNotEmpty()) {
         Row {
             imageUris.forEach { uri ->
@@ -496,7 +495,7 @@ fun ImagesPreview(imageUris: List<Uri>, onRemove: (Uri) -> Unit) {
                         contentScale = ContentScale.Crop
                     )
                     IconButton(
-                        onClick = { onRemove(uri) },
+                        onClick = { onRemove(uri, threadId) },
                         modifier = Modifier
                             .size(16.dp)
                             .align(Alignment.TopEnd)
