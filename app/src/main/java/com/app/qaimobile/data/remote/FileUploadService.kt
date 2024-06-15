@@ -16,7 +16,7 @@ interface FileUploadService {
         @Part("threadId") threadId: String?
     ): Call<UploadFilesResponse>
 
-    @POST("/bp_files/q-file-delete")
+    @POST("/bp_files_mobile/q-file-delete")
     suspend fun deleteFile(
         @Body deleteFileRequest: DeleteFileRequest
     ): Response<Unit>
