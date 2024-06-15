@@ -199,6 +199,7 @@ fun QComposerScreen(
                             Icon(Icons.Default.MoreVert, contentDescription = "Menu", tint = Color.Gray)
                         }
                     }
+
                     DropdownMenu(
                         expanded = expandedMainMenu,
                         onDismissRequest = { expandedMainMenu = false },
