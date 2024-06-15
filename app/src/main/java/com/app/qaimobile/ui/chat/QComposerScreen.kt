@@ -57,6 +57,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
+@Destination(route = Destinations.CHAT_ROUTE)
 @Composable
 fun QComposerScreen(
     viewModel: ChatViewModel = hiltViewModel(),
@@ -92,6 +93,7 @@ fun QComposerScreen(
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     val imageUris by imageViewModel.imageUris.collectAsState()
+    val uploadSuccess by imageViewModel.uploadSuccess.collectAsState()
 
     // Initialize image pickers
     val selectImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -100,10 +102,10 @@ fun QComposerScreen(
                 val clipData = data.clipData
                 if (clipData != null) {
                     val uris = (0 until clipData.itemCount).map { clipData.getItemAt(it).uri }
-                    imageViewModel.updateImageUris(uris)
+                    imageViewModel.updateImageUris(uris, selectedThreadId)
                 } else {
                     data.data?.let { uri ->
-                        imageViewModel.updateImageUris(listOf(uri))
+                        imageViewModel.updateImageUris(listOf(uri), selectedThreadId)
                     }
                 }
             }
@@ -340,10 +342,10 @@ fun QComposerScreen(
                                 .background(Color.White)
                                 .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
                         ) {
-                            Row(
+                            Column(
                                 modifier = Modifier.padding(8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 IconTextButton(
                                     icon = Icons.Default.PhotoLibrary,
@@ -354,10 +356,6 @@ fun QComposerScreen(
                                                 putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
                                             }
                                         )
-                                        coroutineScope.launch {
-                                            imageViewModel.uploadSelectedImages(selectedThreadId)
-                                        }
-                                        expandedFabMenu = false
                                     }
                                 )
                                 IconTextButton(
@@ -399,33 +397,37 @@ fun QComposerScreen(
                             onClick = {
                                 if (message.isNotBlank()) {
                                     coroutineScope.launch {
-                                        onEvent(ChatUiEvent.SendMessage(selectedThreadId ?: "", message))
-                                        message = ""
-                                        keyboardController?.hide()
-                                        showBorder = true
+                                        if (uploadSuccess) {
+                                            onEvent(ChatUiEvent.SendMessage(selectedThreadId ?: "", message))
+                                            message = ""
+                                            keyboardController?.hide()
+                                            showBorder = true
 
-                                        val timeoutMillis = 30000L // 30 seconds timeout
-                                        val startTime = System.currentTimeMillis()
+                                            val timeoutMillis = 30000L // 30 seconds timeout
+                                            val startTime = System.currentTimeMillis()
 
-                                        while (System.currentTimeMillis() - startTime < timeoutMillis) {
-                                            runStatusViewModel.fetchRunStatus(selectedThreadId ?: "")
-                                            when (runStatusViewModel.status.value) {
-                                                "completed" -> {
-                                                    showBorder = false
-                                                    break
+                                            while (System.currentTimeMillis() - startTime < timeoutMillis) {
+                                                runStatusViewModel.fetchRunStatus(selectedThreadId ?: "")
+                                                when (runStatusViewModel.status.value) {
+                                                    "completed" -> {
+                                                        showBorder = false
+                                                        break
+                                                    }
+                                                    "error" -> {
+                                                        showBorder = false
+                                                        showToast(context, "Error fetching run status")
+                                                        break
+                                                    }
                                                 }
-                                                "error" -> {
-                                                    showBorder = false
-                                                    showToast(context, "Error fetching run status")
-                                                    break
-                                                }
+                                                delay(100)
                                             }
-                                            delay(100)
-                                        }
 
-                                        if (runStatusViewModel.status.value != "completed") {
-                                            showBorder = false
-                                            //showToast(context, "Run status timed out")
+                                            if (runStatusViewModel.status.value != "completed") {
+                                                showBorder = false
+                                                //showToast(context, "Run status timed out")
+                                            }
+                                        } else {
+                                            showToast(context, "File upload is in progress, please wait.")
                                         }
                                     }
                                 } else {
@@ -465,7 +467,7 @@ fun IconTextButton(icon: ImageVector, text: String, onClick: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(icon, contentDescription = text, tint = Color.Black)
-            Text(text, color = Color.Black, style = MaterialTheme.typography.labelMedium)
+            Text(text, color = Color.Black, style = MaterialTheme.typography.bodySmall)
         }
     }
 }

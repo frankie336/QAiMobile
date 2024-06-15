@@ -1,6 +1,5 @@
 package com.app.qaimobile.ui.image_handling
 
-import android.app.Application
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -26,6 +25,7 @@ import com.app.qaimobile.data.remote.FileUploadService
 @Composable
 fun ImageHandlingScreen(
     fileUploadService: FileUploadService,
+    threadId: String?, // Add threadId parameter
     viewModel: ImageViewModel = viewModel(factory = ImageViewModelFactory(fileUploadService))
 ) {
     val captureImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -59,7 +59,7 @@ fun ImageHandlingScreen(
     LaunchedEffect(imageUris) {
         if (imageUris.isNotEmpty()) {
             // Upload the selected images to the backend
-            viewModel.uploadSelectedImages(threadId = null) // Pass the threadId if available
+            viewModel.uploadSelectedImages(threadId) // Pass the threadId if available
         }
     }
 

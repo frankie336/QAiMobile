@@ -18,7 +18,8 @@ class ImageHandlingActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             QAiMobileTheme {
-                ImageHandlingScreen(fileUploadService = fileUploadService)
+                // Ensure this line matches the method signature in MainActivity
+                ImageHandlingScreen(fileUploadService = fileUploadService, threadId = null)
             }
         }
     }

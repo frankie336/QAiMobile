@@ -37,6 +37,9 @@ class ImageViewModel @Inject constructor(
     private val _imageUris = MutableStateFlow<List<Uri>>(emptyList())
     val imageUris: StateFlow<List<Uri>> = _imageUris.asStateFlow()
 
+    private val _uploadSuccess = MutableStateFlow(false)
+    val uploadSuccess: StateFlow<Boolean> = _uploadSuccess.asStateFlow()
+
     lateinit var captureImageResultLauncher: ActivityResultLauncher<Intent>
     lateinit var selectImageResultLauncher: ActivityResultLauncher<Intent>
 
@@ -69,11 +72,12 @@ class ImageViewModel @Inject constructor(
         Log.d("ImageViewModel", "selectImageFromGallery called")
     }
 
-    fun updateImageUris(uris: List<Uri>) {
+    fun updateImageUris(uris: List<Uri>, threadId: String?) {
         val currentList = _imageUris.value.toMutableList()
         currentList.addAll(uris)
         _imageUris.value = currentList
         Log.d("ImageViewModel", "Image URIs added: $uris")
+        uploadSelectedImages(threadId)  // Ensure upload starts with threadId
     }
 
     fun removeImageUri(uri: Uri) {
@@ -86,7 +90,10 @@ class ImageViewModel @Inject constructor(
     private fun uriToFile(uri: Uri): File {
         val contentResolver: ContentResolver = getApplication<Application>().contentResolver
         val inputStream: InputStream? = contentResolver.openInputStream(uri)
-        val file = File(getApplication<Application>().cacheDir, "tempImageFile${System.currentTimeMillis()}.jpg")
+        val file = File(
+            getApplication<Application>().cacheDir,
+            "tempImageFile${System.currentTimeMillis()}.jpg"
+        )
         val outputStream = FileOutputStream(file)
         inputStream?.use { input ->
             outputStream.use { output ->
@@ -103,13 +110,15 @@ class ImageViewModel @Inject constructor(
                     Log.d("ImageViewModel", "Starting image upload for URI: $uri")
                     val file = uriToFile(uri)
                     val requestBody = file.asRequestBody("image/*".toMediaTypeOrNull())
-                    val filePart = MultipartBody.Part.createFormData("files", file.name, requestBody)
+                    val filePart =
+                        MultipartBody.Part.createFormData("files", file.name, requestBody)
 
                     Log.d("ImageViewModel", "Prepared file part for upload: $filePart")
 
                     val tabNamesRequestBody = MultipartBody.Part.createFormData("tabNames", "image")
                     val userIdRequestBody = MultipartBody.Part.createFormData("userId", "user123")
-                    val threadIdRequestBody = threadId?.let { MultipartBody.Part.createFormData("threadId", it) }
+                    val threadIdRequestBody =
+                        threadId?.let { MultipartBody.Part.createFormData("threadId", it) }
 
                     Log.d("ImageViewModel", "Prepared tabNamesRequestBody: $tabNamesRequestBody")
                     Log.d("ImageViewModel", "Prepared userIdRequestBody: $userIdRequestBody")
@@ -122,24 +131,41 @@ class ImageViewModel @Inject constructor(
                         userId = "user123",
                         threadId = threadId
                     ).enqueue(object : Callback<UploadFilesResponse> {
-                        override fun onResponse(call: Call<UploadFilesResponse>, response: Response<UploadFilesResponse>) {
+                        override fun onResponse(
+                            call: Call<UploadFilesResponse>,
+                            response: Response<UploadFilesResponse>
+                        ) {
                             Log.d("ImageViewModel", "Upload response: $response")
 
                             if (response.isSuccessful) {
-                                Log.d("ImageViewModel", "Image uploaded successfully: ${response.body()}")
+                                Log.d(
+                                    "ImageViewModel",
+                                    "Image uploaded successfully: ${response.body()}"
+                                )
+                                _uploadSuccess.value = true
                             } else {
-                                Log.e("ImageViewModel", "Image upload failed: ${response.errorBody()?.string()}")
+                                Log.e(
+                                    "ImageViewModel",
+                                    "Image upload failed: ${response.errorBody()?.string()}"
+                                )
+                                _uploadSuccess.value = false
                             }
                         }
 
                         override fun onFailure(call: Call<UploadFilesResponse>, t: Throwable) {
                             Log.e("ImageViewModel", "Exception occurred during image upload", t)
+                            _uploadSuccess.value = false
                         }
                     })
                 } catch (e: Exception) {
                     Log.e("ImageViewModel", "Exception occurred during image upload", e)
+                    _uploadSuccess.value = false
                 }
             }
         }
+    }
+
+    fun updateImageUris(uris: List<Uri>) {
+
     }
 }

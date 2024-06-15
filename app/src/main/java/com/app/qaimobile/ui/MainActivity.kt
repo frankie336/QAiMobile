@@ -1,7 +1,6 @@
 package com.app.qaimobile.ui
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -83,8 +82,9 @@ class MainActivity : ComponentActivity() {
                     startDestination = APP_NAV_GRAPH_ROUTE,
                 ) {
                     appNavGraph(navController, SplashScreenDestination.route)
-                    composable("imageHandling") {
-                        ImageHandlingScreen(fileUploadService = fileUploadService) // Pass the FileUploadService instance
+                    composable("imageHandling/{threadId}") { backStackEntry ->
+                        val threadId = backStackEntry.arguments?.getString("threadId")
+                        ImageHandlingScreen(fileUploadService = fileUploadService, threadId = threadId) // Pass the threadId to ImageHandlingScreen
                     }
                 }
             }
