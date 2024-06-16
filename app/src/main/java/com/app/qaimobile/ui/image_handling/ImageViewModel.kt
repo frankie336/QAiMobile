@@ -41,6 +41,8 @@ class ImageViewModel @Inject constructor(
     private val _uploadSuccess = MutableStateFlow(false)
     val uploadSuccess: StateFlow<Boolean> = _uploadSuccess.asStateFlow()
 
+    private val uriToFileMap = mutableMapOf<Uri, String>()
+
     lateinit var captureImageResultLauncher: ActivityResultLauncher<Intent>
     lateinit var selectImageResultLauncher: ActivityResultLauncher<Intent>
 
@@ -84,12 +86,13 @@ class ImageViewModel @Inject constructor(
     private fun deleteFileFromBackend(uri: Uri, threadId: String?) {
         viewModelScope.launch {
             try {
+                val fileName = uriToFileMap[uri] ?: uri.lastPathSegment ?: ""
                 val response = fileUploadService.deleteFile(
                     DeleteFileRequest(
                         userId = "user123",
                         threadId = threadId,
                         tabName = "image",
-                        filename = uri.lastPathSegment ?: ""
+                        filename = fileName
                     )
                 )
                 if (response.isSuccessful) {
@@ -109,21 +112,21 @@ class ImageViewModel @Inject constructor(
         _imageUris.value = currentList
         Log.d("ImageViewModel", "Image URI removed: $uri")
         deleteFileFromBackend(uri, threadId)
+        uriToFileMap.remove(uri)  // Remove the mapping
     }
 
     private fun uriToFile(uri: Uri): File {
         val contentResolver: ContentResolver = getApplication<Application>().contentResolver
         val inputStream: InputStream? = contentResolver.openInputStream(uri)
-        val file = File(
-            getApplication<Application>().cacheDir,
-            "tempImageFile${System.currentTimeMillis()}.jpg"
-        )
+        val fileName = "tempImageFile${System.currentTimeMillis()}.jpg"
+        val file = File(getApplication<Application>().cacheDir, fileName)
         val outputStream = FileOutputStream(file)
         inputStream?.use { input ->
             outputStream.use { output ->
                 input.copyTo(output)
             }
         }
+        uriToFileMap[uri] = fileName
         return file
     }
 
@@ -133,7 +136,7 @@ class ImageViewModel @Inject constructor(
                 try {
                     Log.d("ImageViewModel", "Starting image upload for URI: $uri")
                     val file = uriToFile(uri)
-                    val requestBody = file.asRequestBody("image/*".toMediaTypeOrNull())
+                    val requestBody = file.asRequestBody("[\"Chat 1\"]/*".toMediaTypeOrNull())
                     val filePart =
                         MultipartBody.Part.createFormData("files", file.name, requestBody)
 
