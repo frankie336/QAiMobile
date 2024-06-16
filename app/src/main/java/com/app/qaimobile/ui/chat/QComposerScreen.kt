@@ -4,7 +4,6 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
 import android.provider.MediaStore
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateColorAsState
@@ -377,7 +376,9 @@ fun QComposerScreen(
                                     icon = Icons.Default.CameraAlt,
                                     text = "Camera",
                                     onClick = {
-                                        // Handle Camera action
+                                        captureImageLauncher.launch(
+                                            Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+                                        )
                                         expandedFabMenu = false // Close the menu after selection
                                     }
                                 )
@@ -408,6 +409,9 @@ fun QComposerScreen(
                                         message = ""
                                         keyboardController?.hide()
                                         showBorder = true
+
+                                        // Clear image URIs after sending the message
+                                        imageViewModel.clearImageUris()
 
                                         val timeoutMillis = 30000L // 30 seconds timeout
                                         val startTime = System.currentTimeMillis()

@@ -91,6 +91,11 @@ class ImageViewModel @Inject constructor(
         uploadSelectedImages(threadId)  // Ensure upload starts with threadId
     }
 
+    // Clear the list of image URIs
+    fun clearImageUris() {
+        _imageUris.value = emptyList()
+    }
+
     // Remove an image URI and delete the file from the backend
     fun removeImageUri(uri: Uri, threadId: String?) {
         val currentList = _imageUris.value.toMutableList()
@@ -202,6 +207,7 @@ class ImageViewModel @Inject constructor(
         }
     }
 
+    // Placeholder function, can be removed if not needed
     fun updateImageUris(uris: List<Uri>) {
         // Implementation needed or can be removed if not used
     }
