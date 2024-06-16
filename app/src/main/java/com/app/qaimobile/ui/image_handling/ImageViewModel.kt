@@ -35,17 +35,22 @@ class ImageViewModel @Inject constructor(
     private val fileUploadService: FileUploadService
 ) : AndroidViewModel(application) {
 
+    // MutableStateFlow to hold the list of image URIs
     private val _imageUris = MutableStateFlow<List<Uri>>(emptyList())
     val imageUris: StateFlow<List<Uri>> = _imageUris.asStateFlow()
 
+    // MutableStateFlow to track the upload success status
     private val _uploadSuccess = MutableStateFlow(false)
     val uploadSuccess: StateFlow<Boolean> = _uploadSuccess.asStateFlow()
 
+    // Map to store the relationship between URI and file names
     private val uriToFileMap = mutableMapOf<Uri, String>()
 
+    // Launchers for capturing and selecting images
     lateinit var captureImageResultLauncher: ActivityResultLauncher<Intent>
     lateinit var selectImageResultLauncher: ActivityResultLauncher<Intent>
 
+    // Initialize the launchers for capturing and selecting images
     fun initialize(
         captureImageResultLauncher: ActivityResultLauncher<Intent>,
         selectImageResultLauncher: ActivityResultLauncher<Intent>
@@ -55,6 +60,7 @@ class ImageViewModel @Inject constructor(
         Log.d("ImageViewModel", "Initialized with launchers")
     }
 
+    // Capture an image using the device camera
     fun captureImage() {
         val captureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         val imageFile = File(getApplication<Application>().getExternalFilesDir(null), "image.jpg")
@@ -68,6 +74,7 @@ class ImageViewModel @Inject constructor(
         Log.d("ImageViewModel", "captureImage called, URI: $imageUri")
     }
 
+    // Select an image from the gallery
     fun selectImageFromGallery() {
         val selectIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         selectIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
@@ -75,6 +82,7 @@ class ImageViewModel @Inject constructor(
         Log.d("ImageViewModel", "selectImageFromGallery called")
     }
 
+    // Update the list of image URIs and start the upload process
     fun updateImageUris(uris: List<Uri>, threadId: String?) {
         val currentList = _imageUris.value.toMutableList()
         currentList.addAll(uris)
@@ -83,29 +91,7 @@ class ImageViewModel @Inject constructor(
         uploadSelectedImages(threadId)  // Ensure upload starts with threadId
     }
 
-    private fun deleteFileFromBackend(uri: Uri, threadId: String?) {
-        viewModelScope.launch {
-            try {
-                val fileName = uriToFileMap[uri] ?: uri.lastPathSegment ?: ""
-                val response = fileUploadService.deleteFile(
-                    DeleteFileRequest(
-                        userId = "user123",
-                        threadId = threadId,
-                        tabName = "image",
-                        filename = fileName
-                    )
-                )
-                if (response.isSuccessful) {
-                    Log.d("ImageViewModel", "File deleted successfully from backend: $uri")
-                } else {
-                    Log.e("ImageViewModel", "Failed to delete file from backend: ${response.errorBody()?.string()}")
-                }
-            } catch (e: Exception) {
-                Log.e("ImageViewModel", "Exception occurred while deleting file from backend", e)
-            }
-        }
-    }
-
+    // Remove an image URI and delete the file from the backend
     fun removeImageUri(uri: Uri, threadId: String?) {
         val currentList = _imageUris.value.toMutableList()
         currentList.remove(uri)
@@ -115,6 +101,7 @@ class ImageViewModel @Inject constructor(
         uriToFileMap.remove(uri)  // Remove the mapping
     }
 
+    // Convert a URI to a file and store the mapping
     private fun uriToFile(uri: Uri): File {
         val contentResolver: ContentResolver = getApplication<Application>().contentResolver
         val inputStream: InputStream? = contentResolver.openInputStream(uri)
@@ -130,22 +117,21 @@ class ImageViewModel @Inject constructor(
         return file
     }
 
+    // Upload the selected images to the backend
     fun uploadSelectedImages(threadId: String?) {
         _imageUris.value.forEach { uri ->
             viewModelScope.launch {
                 try {
                     Log.d("ImageViewModel", "Starting image upload for URI: $uri")
                     val file = uriToFile(uri)
-                    val requestBody = file.asRequestBody("[\"Chat 1\"]/*".toMediaTypeOrNull())
-                    val filePart =
-                        MultipartBody.Part.createFormData("files", file.name, requestBody)
+                    val requestBody = file.asRequestBody("image/*".toMediaTypeOrNull())
+                    val filePart = MultipartBody.Part.createFormData("files", file.name, requestBody)
 
                     Log.d("ImageViewModel", "Prepared file part for upload: $filePart")
 
                     val tabNamesRequestBody = MultipartBody.Part.createFormData("tabNames", "image")
                     val userIdRequestBody = MultipartBody.Part.createFormData("userId", "user123")
-                    val threadIdRequestBody =
-                        threadId?.let { MultipartBody.Part.createFormData("threadId", it) }
+                    val threadIdRequestBody = threadId?.let { MultipartBody.Part.createFormData("threadId", it) }
 
                     Log.d("ImageViewModel", "Prepared tabNamesRequestBody: $tabNamesRequestBody")
                     Log.d("ImageViewModel", "Prepared userIdRequestBody: $userIdRequestBody")
@@ -188,6 +174,30 @@ class ImageViewModel @Inject constructor(
                     Log.e("ImageViewModel", "Exception occurred during image upload", e)
                     _uploadSuccess.value = false
                 }
+            }
+        }
+    }
+
+    // Delete a file from the backend
+    private fun deleteFileFromBackend(uri: Uri, threadId: String?) {
+        viewModelScope.launch {
+            try {
+                val fileName = uriToFileMap[uri] ?: uri.lastPathSegment ?: ""
+                val response = fileUploadService.deleteFile(
+                    DeleteFileRequest(
+                        userId = "user123",
+                        threadId = threadId,
+                        tabName = "image",
+                        filename = fileName
+                    )
+                )
+                if (response.isSuccessful) {
+                    Log.d("ImageViewModel", "File deleted successfully from backend: $uri")
+                } else {
+                    Log.e("ImageViewModel", "Failed to delete file from backend: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("ImageViewModel", "Exception occurred while deleting file from backend", e)
             }
         }
     }
