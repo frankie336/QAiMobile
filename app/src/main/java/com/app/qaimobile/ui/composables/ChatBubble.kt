@@ -3,7 +3,7 @@ package com.app.qaimobile.ui.composables
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.foundation.Image
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -13,24 +13,15 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
-import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
 import com.app.qaimobile.data.model.network.Message
 import com.app.qaimobile.util.parseMarkdownContent
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.net.URL
 
 @Composable
 fun ChatBubble(message: Message) {
@@ -72,6 +63,7 @@ fun ChatBubble(message: Message) {
                     message.content.forEach { content ->
                         val text = content.text?.value ?: ""
                         val imageUrl = extractImageUrl(text)
+                        Log.d("ChatBubble", "Text: $text, Image URL: $imageUrl")
                         if (imageUrl != null) {
                             ImageFromUrl(url = imageUrl, modifier = Modifier.fillMaxWidth().height(200.dp))
                             ClickableText(
@@ -95,34 +87,16 @@ fun ChatBubble(message: Message) {
                             )
                         }
                     }
+                    message.attachments.forEach { attachment ->
+                        Log.d("ChatBubble", "Attachment URL: ${attachment.url}, Type: ${attachment.type}")
+                        if (attachment.type == "image") {
+                            ImageFromUrl(url = attachment.url, modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp))
+                        }
+                    }
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun UrlContent(url: String) {
-    val (content, setContent) = remember { mutableStateOf<String?>(null) }
-
-    LaunchedEffect(url) {
-        val fetchedContent = fetchUrlContent(url)
-        setContent(fetchedContent)
-    }
-
-    content?.let {
-        Text(text = it, style = MaterialTheme.typography.bodyMedium, color = Color.Black)
-    } ?: run {
-        Text(text = "Loading content...", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-    }
-}
-
-suspend fun fetchUrlContent(url: String): String {
-    return withContext(Dispatchers.IO) {
-        try {
-            URL(url).readText()
-        } catch (e: Exception) {
-            "Failed to load content"
         }
     }
 }

@@ -40,7 +40,10 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.app.qaimobile.data.datastore.PreferencesKeys.SELECTED_CONVERSATION_ID
+import com.app.qaimobile.data.model.network.Attachment
+import com.app.qaimobile.data.model.network.Message
+import com.app.qaimobile.data.model.network.MessageContent
+import com.app.qaimobile.data.model.network.MessageText
 import com.app.qaimobile.data.model.network.toEntity
 import com.app.qaimobile.navigation.Destinations
 import com.app.qaimobile.ui.composables.AnimatedOrb
@@ -271,6 +274,19 @@ fun QComposerScreen(
                             ChatBubble(messages[index])
                         }
                     }
+                    item {
+                        imageUris.forEach { uri ->
+                            AsyncImage(
+                                model = uri,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp)
+                                    .height(200.dp),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
                 }
             }
 
@@ -405,13 +421,37 @@ fun QComposerScreen(
                             onClick = {
                                 if (message.isNotBlank()) {
                                     coroutineScope.launch {
-                                        onEvent(ChatUiEvent.SendMessage(selectedThreadId ?: "", message))
+                                        val attachments = imageUris.map { uri ->
+                                            Attachment(
+                                                url = uri.toString(),
+                                                type = "image"
+                                            )
+                                        }
+                                        val newMessage = Message(
+                                            id = "", // Generate or obtain an ID
+                                            assistantId = null,
+                                            attachments = attachments,
+                                            completedAt = null,
+                                            content = listOf(MessageContent(
+                                                text = MessageText(annotations = emptyList(), value = message),
+                                                type = "text"
+                                            )),
+                                            createdAt = System.currentTimeMillis(),
+                                            incompleteAt = null,
+                                            incompleteDetails = null,
+                                            metadata = emptyMap(),
+                                            objectType = "message",
+                                            role = "user",
+                                            runId = null,
+                                            status = null,
+                                            threadId = selectedThreadId ?: ""
+                                        )
+
+                                        onEvent(ChatUiEvent.SendMessage(newMessage.threadId, newMessage.content.first().text?.value ?: ""))
                                         message = ""
+                                        imageViewModel.clearImageUris()
                                         keyboardController?.hide()
                                         showBorder = true
-
-                                        // Clear image URIs after sending the message
-                                        imageViewModel.clearImageUris()
 
                                         val timeoutMillis = 30000L // 30 seconds timeout
                                         val startTime = System.currentTimeMillis()
@@ -515,6 +555,40 @@ fun ImagesPreview(imageUris: List<Uri>, threadId: String?, onRemove: (Uri, Strin
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun ChatBubble(message: Message) {
+    Column(modifier = Modifier.padding(8.dp)) {
+        Text(
+            text = message.role,
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.Gray
+        )
+        message.content.forEach { content ->
+            if (content.type == "text") {
+                content.text?.let { text ->
+                    Text(
+                        text = text.value,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Black
+                    )
+                }
+            }
+        }
+        message.attachments.forEach { attachment ->
+            if (attachment.type == "image") {
+                AsyncImage(
+                    model = attachment.url,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(100.dp)
+                        .padding(4.dp),
+                    contentScale = ContentScale.Crop
+                )
             }
         }
     }

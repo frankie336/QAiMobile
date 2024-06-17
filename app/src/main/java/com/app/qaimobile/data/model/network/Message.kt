@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName
 
 data class MessageContent(
     @SerializedName("text")
-    val text: MessageText,
+    val text: MessageText?,
     @SerializedName("type")
     val type: String
 )
@@ -17,13 +17,20 @@ data class MessageText(
     val value: String
 )
 
+data class Attachment(
+    @SerializedName("url")
+    val url: String,
+    @SerializedName("type")
+    val type: String
+)
+
 data class Message(
     @SerializedName("id")
     val id: String,
     @SerializedName("assistant_id")
     val assistantId: String?,
     @SerializedName("attachments")
-    val attachments: List<Any>,
+    val attachments: List<Attachment>,
     @SerializedName("completed_at")
     val completedAt: Long?,
     @SerializedName("content")
