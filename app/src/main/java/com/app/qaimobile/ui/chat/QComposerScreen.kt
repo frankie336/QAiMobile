@@ -274,19 +274,6 @@ fun QComposerScreen(
                             ChatBubble(messages[index])
                         }
                     }
-                    item {
-                        imageUris.forEach { uri ->
-                            AsyncImage(
-                                model = uri,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(8.dp)
-                                    .height(200.dp),
-                                contentScale = ContentScale.Crop
-                            )
-                        }
-                    }
                 }
             }
 
@@ -448,6 +435,7 @@ fun QComposerScreen(
                                         )
 
                                         onEvent(ChatUiEvent.SendMessage(newMessage.threadId, newMessage.content.first().text?.value ?: ""))
+                                        viewModel.addMessage(newMessage)
                                         message = ""
                                         imageViewModel.clearImageUris()
                                         keyboardController?.hide()
@@ -561,40 +549,6 @@ fun ImagesPreview(imageUris: List<Uri>, threadId: String?, onRemove: (Uri, Strin
 }
 
 @Composable
-fun ChatBubble(message: Message) {
-    Column(modifier = Modifier.padding(8.dp)) {
-        Text(
-            text = message.role,
-            style = MaterialTheme.typography.bodySmall,
-            color = Color.Gray
-        )
-        message.content.forEach { content ->
-            if (content.type == "text") {
-                content.text?.let { text ->
-                    Text(
-                        text = text.value,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Black
-                    )
-                }
-            }
-        }
-        message.attachments.forEach { attachment ->
-            if (attachment.type == "image") {
-                AsyncImage(
-                    model = attachment.url,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(100.dp)
-                        .padding(4.dp),
-                    contentScale = ContentScale.Crop
-                )
-            }
-        }
-    }
-}
-
-@Composable
 fun GlowingBorder(runStatusViewModel: RunStatusViewModel, showBorder: Boolean) {
     val status by runStatusViewModel.status.collectAsState()
     val colorMap = mapOf(
@@ -622,3 +576,4 @@ fun GlowingBorder(runStatusViewModel: RunStatusViewModel, showBorder: Boolean) {
         }
     }
 }
+

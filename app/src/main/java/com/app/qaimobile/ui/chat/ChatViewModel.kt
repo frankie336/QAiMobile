@@ -89,6 +89,12 @@ class ChatViewModel @Inject constructor(
         }
     }
 
+    fun addMessage(message: Message) {
+        _selectedConversationMessages.value = _selectedConversationMessages.value?.toMutableList()?.apply {
+            add(message)
+        }
+    }
+
     fun getActiveThreadId(): String? {
         var activeThreadId: String? = null
         viewModelScope.launch {

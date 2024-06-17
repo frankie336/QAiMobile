@@ -20,6 +20,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.app.qaimobile.data.model.network.Message
 import com.app.qaimobile.util.parseMarkdownContent
 
@@ -100,6 +103,7 @@ fun ChatBubble(message: Message) {
         }
     }
 }
+
 
 private fun handleUrlClicks(context: Context, text: AnnotatedString, offset: Int) {
     text.getStringAnnotations(tag = "URL", start = offset, end = offset)
